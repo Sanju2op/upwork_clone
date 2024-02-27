@@ -6,25 +6,25 @@ const RegisterPage = () => {
     const [password, setPassword] = useState('');
 
     const handleUsernameChange = (e) => {
-         setUsername(e.target.value);
+        setUsername(e.target.value);
     };
 
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     };
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         //register Logic 
         try {
-            const response = await fetch('http://localhost:5000/api/register', {
-                method:'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({username, password})
+            const response = await fetch('http://localhost:5000/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
             const data = await response.json();
             console.log(data);
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             console.log(error);
         }
@@ -35,15 +35,15 @@ const RegisterPage = () => {
             <h1>Register Page</h1>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="username">Enter Username:</label>
-                <br/>
+                <br />
                 <input type="text" name="username" id="username" value={username} onChange={handleUsernameChange} />
-                <br/>
+                <br />
 
                 <label htmlFor="password">Enter Password:</label>
-                <br/>
+                <br />
                 <input type="password" name="password" id="password" value={password} onChange={handlePasswordChange} />
-                <br/>
-                
+                <br />
+
                 <button type="submit">REGISTER</button>
             </form>
         </div>

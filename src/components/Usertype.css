@@ -1,0 +1,38 @@
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+    text-align: center;
+}
+
+#typeLogo {
+    width: 50%;
+}
+
+.card-body {
+    width: 70%;
+    text-align: left;
+    text-justify: auto;
+    
+}
+.card:hover {
+    background-color: rgb(221, 234, 221);
+    border-color: #108A00;
+    cursor:pointer;
+}
+.FontStyleHere {
+    font-family: Rza,Rza-fallback,Georgia,serif;
+    font-weight: 540;
+    color: black;
+}
+#linkStuff {
+    color: #108A00;
+    font-weight: 500;
+}
+#linkStuff:hover {
+    color:  #18cf00;
+}
+#cursor {
+    cursor: not-allowed;
+}

@@ -29,7 +29,7 @@ app.use(cors({
 }));
 
 //api endpoint to handle user registration
-app.post('/api/register', async (req, res) => {
+app.post('/api/signup', async (req, res) => {
     const {username, password} = req.body;
     try {
         //check if the username already exists

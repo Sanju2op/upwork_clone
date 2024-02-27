@@ -11,22 +11,22 @@ const LoginPage = () => {
     };
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(" LoginStuff :", {username, password});
+        console.log(" LoginStuff :", { username, password });
     };
     return (
         <div>
             <h1>Login Page</h1>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="username">Enter Username:</label>
-                <br/>
+                <br />
                 <input type="text" name="username" id="username" value={username} onChange={handleUsernameChange} />
-                <br/>
+                <br />
 
                 <label htmlFor="password">Enter Password:</label>
-                <br/>
-                <input type="password" name="password" id="password" value={password} onChange={handlePasswordChange}/>
-                <br/>
-                
+                <br />
+                <input type="password" name="password" id="password" value={password} onChange={handlePasswordChange} />
+                <br />
+
                 <button type="submit">LOGIN</button>
             </form>
         </div>
