@@ -48,3 +48,13 @@ label, button {
     justify-content: center;
     text-align: center;
 }
+.emailVeryForm {
+    width: 50%;
+    margin: auto;
+}
+#veryDesc {
+    font-size: larger;
+}
+#emailDesc {
+    font-weight: bolder;
+}

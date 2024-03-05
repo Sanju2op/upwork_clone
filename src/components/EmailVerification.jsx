@@ -7,15 +7,15 @@ const EmailVerification = ({ email, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/sendVerificationCode', {
+      const response = await fetch('http://localhost:5000/api/verifyEmail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, verificationCode }), 
+        body: JSON.stringify({ email, verificationCode }),
       });
       if (response.ok) {
-        onSuccess(); 
+        onSuccess();
       } else {
         alert('Failed to verify email. Please try again.');
       }
@@ -24,27 +24,30 @@ const EmailVerification = ({ email, onSuccess }) => {
       alert('An error occurred. Please try again.');
     }
   };
-  
+
 
   return (
-    <div>
+    <div className="container-fluid">
       <h2>Verify Your Email</h2>
-      <p>An email with a verification code has been sent to {email}. Enter the code below to verify your email.</p>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="formVerificationCode">
-          <Form.Label>Verification Code</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter verification code"
-            value={verificationCode}
-            onChange={(e) => setVerificationCode(e.target.value)}
-            required
-          />
-        </Form.Group>
-        <Button variant="primary" type="submit">
-          Verify Email
-        </Button>
-      </Form>
+      <p id='veryDesc'>An email with a verification code has been sent to <span id='emailDesc'>{email}</span>. Enter the code below to verify your email.</p>
+      <div className='emailVeryForm'>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group controlId="formVerificationCode">
+            <Form.Label>Verification Code</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter verification code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              required
+            />
+          </Form.Group>
+          <br />
+          <Button variant="success" type="submit">
+            Verify Email
+          </Button>
+        </Form>
+      </div>
     </div>
   );
 };
