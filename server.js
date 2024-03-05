@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const port = 5000;
@@ -46,6 +47,42 @@ app.post('/api/signup', async (req, res) => {
         res.status(500).json({message: error.message});
     }
 });
+
+//mail verification process
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'sanjaylagaria79901@gmail.com',
+        pass: 'M1e2r4a5m6a7n8#3922',
+    },
+});
+
+app.post('/sendVerificationCode', (req, res) => {
+    const { email } = req.body;
+
+    // Generate a random verification code (you can use a library for this)
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+    // Send email with verification code
+    const mailOptions = {
+        from: 'sanjaylagaria79901@gmail.com',
+        to: email,
+        subject: 'Upwork - Email Verification Code',
+        text: `Your verification code is: ${verificationCode}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+            res.status(500).json({ error: 'Failed to send verification code.' });
+        } else {
+            console.log('Email sent:', info.response);
+            res.status(200).json({ message: 'Verification code sent successfully.' });
+        }
+    });
+});
+
+
 
 app.listen(port, () => {
     console.log(`Server Running at http://localhost:${port}`);

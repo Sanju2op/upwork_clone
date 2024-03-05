@@ -14,25 +14,30 @@
     width: 70%;
     text-align: left;
     text-justify: auto;
-    
+
 }
+
 .card:hover {
     background-color: rgb(221, 234, 221);
     border-color: #108A00;
-    cursor:pointer;
+    cursor: pointer;
 }
+
 .FontStyleHere {
-    font-family: Rza,Rza-fallback,Georgia,serif;
+    font-family: Rza, Rza-fallback, Georgia, serif;
     font-weight: 540;
     color: black;
 }
+
 #linkStuff {
     color: #108A00;
     font-weight: 500;
 }
+
 #linkStuff:hover {
-    color:  #18cf00;
+    color: #18cf00;
 }
+
 #cursor {
     cursor: not-allowed;
 }
