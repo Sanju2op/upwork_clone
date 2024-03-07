@@ -1,19 +1,15 @@
 require('dotenv').config();
 const express = require('express'); 
 const session = require('express-session');
-const MongoStore = require('connect-mongodb-session')(session);
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongodb-session')(session);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 
-//const crypto = require('crypto');
-// Generate a random secret key
-// const secretKey = crypto.randomBytes(32).toString('hex');
-
-const mongoURI = 'mongodb://localhost:27017/test';
 const app = express();
 const port = 5000;
+
 //middleware to parse json bodies
 app.use(bodyParser.json());
 
@@ -23,15 +19,16 @@ app.use(cors({
 }));
 
 //database Connection
-mongoose.connect(mongoURI, {
+mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser:true,
     useUnifiedTopology:true
 });
+console.log("\n-----------------mongodb connection string", process.env.MONGO_URI);
 
 const sessionStore = new MongoStore({
-    mongoUrl: mongoURI, 
+    mongoUrl:process.env.MONGO_URI, 
     //ttl: 24 * 60 * 60, // Optional session timeout in seconds
-    collection:"mySessions"
+    collection:'mySessions'
 });
 
 // Middleware to initialize session
@@ -40,11 +37,11 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     store: sessionStore,
-    cookie: {
-        secure: false, // Set to true if using HTTPS
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
-    }
+    // cookie: {
+    //     secure: false, // Set to true if using HTTPS
+    //     httpOnly: true,
+    //     maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
+    // }
 }));
 
 //Email verification processes
@@ -69,12 +66,10 @@ app.post('/api/sendVerificationCode', (req, res) => {
     req.session.verificationCode = verificationCode;
     req.session.email = email;
 
-    console.log("\n");
+    console.log("\n Send Verification Code");
     console.log(req.session);
     console.log(req.session.id);
-    console.log("\n");
-    console.log("Session /api/sendVerificationCode - variables set:", req.session.verificationCode, req.session.email);
-    console.log("\n");
+    console.log("\n-------------------------");
 
     //Send email with verification code
     const mailOptions = {
@@ -97,31 +92,29 @@ app.post('/api/sendVerificationCode', (req, res) => {
 
 //Endpoint to verify email with verification code
 app.post('/api/verifyEmail', (req, res) => {
-    const { email, verificationCode } = req.body;
-    const storedEmail = req.session.email;
-    const storedVerificationCode = req.session.verificationCode;
+    const { email, verificationCodeClient } = req.body;
     
-    console.log("\n");
-    console.log(req.session);
+    console.log("\n VerifyEmail Session");
+    console.log(req.session.verificationCode, " client sent -> ", verificationCodeClient);
     console.log(req.session.id);
-    console.log("\n");
-    console.log("Session /api/verifyEmail - variables set:", storedEmail, storedVerificationCode);
-    console.log("\n");   
+    console.log("\n---------------------------------------");  
 
-     // Check if the verification code is correct
-     if (verificationCode !== storedVerificationCode && email !== storedEmail) {
-        res.status(400).json({ error: 'Invalid verification code.' });
+    if (parseInt(verificationCodeClient) !== req.session.verificationCode || email !== req.session.email) {
+        res.status(400).json({ error: 'Invalid verification code or email.' });
         return;
     }
-
+    
     // Clear the verification code from the session
-    req.session.verificationCode = null;
-    storedVerificationCode = null;
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            res.status(500).json({ error: 'Failed to destroy session.' });
+            return;
+        }
+        console.log('Session destroyed');
+    });
 
-    // Optionally, you can mark the email as verified in your database
-    // For example, if you have a User model with an emailVerified field
-    // User.findOneAndUpdate({ email }, { emailVerified: true })
-    console.log("user logged in ");
+    console.log("Email Verified");
     res.status(200).json({ message: 'Email verified successfully.' });
 });
 

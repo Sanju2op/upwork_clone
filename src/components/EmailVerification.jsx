@@ -2,35 +2,18 @@ import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 
 const EmailVerification = ({ email, handleSubmit }) => {
-  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationCodeClient, setVerificationCodeClient] = useState('');
+
   const verifyCode = (e) => {
     e.preventDefault();
-    alert(verificationCode);
-    handleSubmit(verificationCode);
+
+    if (window.confirm(verificationCodeClient)) {
+      handleSubmit(verificationCodeClient);
+    } else {
+      return;
+    }
+    
   }
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   // try {
-  //   //   const response = await fetch('http://localhost:5000/api/verifyEmail', {
-  //   //     method: 'POST',
-  //   //     headers: {
-  //   //       'Content-Type': 'application/json',
-  //   //     },
-  //   //     body: JSON.stringify({ email, verificationCode }),
-  //   //   });
-  //   //   if (response.ok) {
-  //   //     onSuccess();
-  //   //   } else {
-  //   //     alert('Failed to verify email. Please try again.');
-  //   //   }
-  //   // } catch (error) {
-  //   //   console.error('Error verifying email:', error);
-  //   //   alert('An error occurred. Please try again.');
-  //   // }
-  // };
-
-
 
   return (
     <div className="container-fluid">
@@ -43,8 +26,7 @@ const EmailVerification = ({ email, handleSubmit }) => {
             <Form.Control
               type="text"
               placeholder="Enter verification code"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
+              onChange={(e) => setVerificationCodeClient(e.target.value)}
               required
             />
           </Form.Group>
