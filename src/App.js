@@ -8,7 +8,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import NaviBar from "./components/NaviBar";
 import Home from "./pages/Home";
 // import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
+import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
 
 const App = () => {
@@ -19,7 +19,7 @@ const App = () => {
         <Routes>
           <Route exact path="/" Component={Home} />
           <Route path="/signup" Component={SignUp} />
-          <Route path="/login" Component={LoginPage} />
+          <Route path="/login" Component={LogIn} />
         </Routes>
       </div>
     </Router>

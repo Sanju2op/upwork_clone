@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import UserType from "../components/UserType";
-import EmailVerification from "../components/EmailVerification";
-import SignUpFrom from "../components/SignUpForm";
+import UserType from "../components/SignUp/UserType";
+import EmailVerification from "../components/SignUp/EmailVerification";
+import SignUpFrom from "../components/SignUp/SignUpForm";
 import "./SignUp.css";
 
 const SignUp = () => {
