@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express'); 
 const session = require('express-session');
 const mongoose = require('mongoose');
-const MongoStore = require('connect-mongodb-session')(session);
+const MongoStore = require('connect-mongo');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
@@ -22,21 +22,25 @@ app.use(cors({
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser:true,
     useUnifiedTopology:true
+}).then(() => {
+    console.log('\n --> MongoDB connected successfully');
+}).catch((err) => {
+    console.error('\n --> Error connecting to MongoDB:', err);
 });
-console.log("\n-----------------mongodb connection string", process.env.MONGO_URI);
 
-const sessionStore = new MongoStore({
-    mongoUrl:process.env.MONGO_URI, 
-    //ttl: 24 * 60 * 60, // Optional session timeout in seconds
-    collection:'mySessions'
-});
+console.log("\n --> mongodb connection string", process.env.MONGO_URI);
+const MongoSessionURI = process.env.MONGO_URI + "/sessions";
+console.log("\n --> MongoSessionURI connection string", MongoSessionURI, "\n");
 
 // Middleware to initialize session
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    store: sessionStore,
+    store: MongoStore.create({
+        mongoUrl:MongoSessionURI,
+        collectionName:"mySessions"
+    })
     // cookie: {
     //     secure: false, // Set to true if using HTTPS
     //     httpOnly: true,

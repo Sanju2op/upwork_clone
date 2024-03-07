@@ -3,16 +3,12 @@ import { Form, Button } from 'react-bootstrap';
 
 const EmailVerification = ({ email, handleSubmit }) => {
   const [verificationCodeClient, setVerificationCodeClient] = useState('');
-
-  const verifyCode = (e) => {
+  const [isVerifying, setIsVerifying] = useState(false);
+  const verifyCode = async (e) => {
     e.preventDefault();
-
-    if (window.confirm(verificationCodeClient)) {
-      handleSubmit(verificationCodeClient);
-    } else {
-      return;
-    }
-    
+    setIsVerifying(true);
+    await handleSubmit(verificationCodeClient);
+    setIsVerifying(false);
   }
 
   return (
@@ -31,8 +27,12 @@ const EmailVerification = ({ email, handleSubmit }) => {
             />
           </Form.Group>
           <br />
-          <Button variant="success" type="submit">
-            Verify Email
+          <Button
+            variant="success"
+            type="submit"
+            disabled={isVerifying}
+          >
+            {isVerifying ? "Verifying..." : "Verify"}
           </Button>
         </Form>
       </div>

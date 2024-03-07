@@ -17,9 +17,9 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [country, setCountry] = useState('');
   const countries = [
-    {"code":"US","name":"United States"},
-    {"code":"CA","name":"Canada"},
-    {"code":"GB","name":"United Kingdom"},
+    { "code": "US", "name": "United States" },
+    { "code": "CA", "name": "Canada" },
+    { "code": "GB", "name": "United Kingdom" },
   ];
 
   const handleSignUp = async () => {
@@ -34,7 +34,7 @@ const SignUp = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }), 
+        body: JSON.stringify({ email }),
       });
 
       if (!response.ok) {
@@ -75,7 +75,7 @@ const SignUp = () => {
               <form>
                 <div className="form-group m-3">
                   <label className="m-2" htmlFor="fullname">Full Name : </label>
-                  <input type="text" className="form-control" id="fullname" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required /> 
+                  <input type="text" className="form-control" id="fullname" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                 </div>
                 <div className="form-group m-3">
                   <label className="m-2" htmlFor="email">Email : </label>

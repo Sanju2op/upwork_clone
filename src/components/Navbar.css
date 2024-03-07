@@ -22,13 +22,14 @@
     }
 }
 
-.nav-link{
+.nav-link {
     font-size: medium;
     font-weight: 500;
     color: black;
 }
+
 .nav-link:hover {
-    color:#18c501;
+    color: #18c501;
 }
 
 .sublink-text1 {
@@ -39,11 +40,13 @@
 .sublink-text2 {
     color: grey;
 }
+
 #signup-btn {
     color: #ffff;
     font-weight: 550;
     background-color: #108A00;
 }
+
 #signup-btn:hover {
     background-color: #18cf00;
 }

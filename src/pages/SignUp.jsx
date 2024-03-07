@@ -304,7 +304,6 @@ const SignUp = () => {
 
   // Confirming Verification Code
   const handleSubmit = async (verificationCodeClient) => {
-    window.confirm(verificationCodeClient);
     try {
       const response = await fetch('http://localhost:5000/api/verifyEmail', {
         method: 'POST',
@@ -324,7 +323,6 @@ const SignUp = () => {
       alert('An error occurred. Please try again.');
     }
   };
-
 
   return (
     <div className="container-fluid">

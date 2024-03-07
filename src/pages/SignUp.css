@@ -38,23 +38,28 @@
 
 }
 
-label, button {
+label,
+button {
     margin: auto;
     font-size: larger;
     font-weight: 500;
 }
+
 .btn_center {
     display: flex;
     justify-content: center;
     text-align: center;
 }
+
 .emailVeryForm {
     width: 50%;
     margin: auto;
 }
+
 #veryDesc {
     font-size: larger;
 }
+
 #emailDesc {
     font-weight: bolder;
 }

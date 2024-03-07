@@ -1,6 +1,13 @@
-import React from "react";
-import { Form } from "react-bootstrap";
+import React, { useState } from "react";
+import { Form, Button } from "react-bootstrap";
 const SignUpFrom = ({ userType, setFullName, setEmail, setPassword, countries, setCountry, handleSignUp }) => {
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
+  const handleSignUpClick = async () => {
+    setIsSigningUp(true);
+    await handleSignUp();
+    setIsSigningUp(false);
+  };
   return (
     <div id="container">
       <div id="baseDiv">
@@ -38,11 +45,14 @@ const SignUpFrom = ({ userType, setFullName, setEmail, setPassword, countries, s
             </div>
 
             <div className="form-group btn_center">
-              <button
+              <Button
                 className="btn btn-success rounded-3 mt-3  py-2 px-4"
                 type="button"
-                onClick={handleSignUp}
-              > Sign Up </button>
+                onClick={handleSignUpClick}
+                disabled={isSigningUp}
+              >
+                {isSigningUp ? "Signing Up..." : "Sign Up"}
+              </Button>
             </div>
           </form>
           <div className="p-3">Already have an account? <a id="linkStuff" href="/login">Log In</a></div>
