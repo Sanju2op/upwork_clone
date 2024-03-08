@@ -1,0 +1,61 @@
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+    text-align: center;
+}
+
+.FontStyleHere {
+    font-family: Rza, Rza-fallback, Georgia, serif;
+    font-weight: 540;
+    color: black;
+}
+
+.form-group {
+    text-align: left;
+}
+
+#baseDiv {
+    width: 40%;
+}
+
+
+@media only screen and (max-width: 767px) {
+    .FontStyleHere {
+        font-weight: 600;
+        font-size: large;
+    }
+
+    #baseDiv {
+        width: 100%;
+    }
+
+    .form {
+        width: 100%;
+        margin: auto;
+    }
+
+}
+
+label,
+button {
+    margin: auto;
+    font-size: larger;
+    font-weight: 500;
+}
+
+.btn_center {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.not-you-div {
+    color: #108A00;
+    font-size: medium;
+    font-weight: 500;
+}
+.not-you-div:hover {
+    color: #18cf00;
+}
