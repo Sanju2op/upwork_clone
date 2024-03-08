@@ -46,7 +46,7 @@ const SignUpFrom = ({ userType, setFullName, setEmail, setPassword, countries, s
 
             <div className="form-group btn_center">
               <Button
-                className="btn btn-success rounded-3 mt-3  py-2 px-4"
+                className="btn btn-success rounded-5 mt-3  py-2 px-4"
                 type="button"
                 onClick={handleSignUpClick}
                 disabled={isSigningUp}

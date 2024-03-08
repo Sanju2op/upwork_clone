@@ -19,7 +19,7 @@ const GetEmail = ({setEmail, handleContinue }) => {
 
   return (
     <div id="container">
-      <div id="baseDiv">
+      <div className="border border-3 rounded-4 p-5 mt-4" id="baseDiv">
         <div className="row m-2 mt-5 mb-4">
           <div className="col">
             <h1 className="FontStyleHere">Log in to Upwork</h1>
@@ -43,7 +43,7 @@ const GetEmail = ({setEmail, handleContinue }) => {
             <div className="form-group btn_center" >
               <span title={!isValidEmail ? "Enter Valid Email please" : "You can continue now"}>
                 <Button
-                  className="btn btn-success rounded-3 mt-3  py-2 px-4"
+                  className="btn btn-success rounded-5 mt-3  py-2 px-4"
                   type="button"
                   onClick={handleContinue}
                   disabled={!isValidEmail}
@@ -53,7 +53,22 @@ const GetEmail = ({setEmail, handleContinue }) => {
               </span>
             </div>
           </form>
-          <div className="p-3"> Don't have an Upwork account? <a id="linkStuff" href="/signup">Sign In</a></div>
+          <div className="row mt-5">
+  <div className="col">
+    <hr className="border border-2 rounded-5 border-dark" />
+  </div>
+  <div className="col-6 text-center">
+    <span className="text-muted font-weight-bold">
+    Don't have an Upwork account?
+    </span>
+  </div>
+  <div className="col">
+    <hr className="border border-2 rounded-5 border-dark" />
+  </div>
+</div>
+          <div className="p-3 mt-3"><a id="linkStuff" href="/signup">
+            <button className="btn btn-outline-success rounded-5 px-4">Sign In</button>
+            </a></div>
         </div>
       </div>
     </div>

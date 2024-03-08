@@ -29,6 +29,7 @@
 
     #baseDiv {
         width: 100%;
+        border-color: white !important;
     }
 
     .form {
@@ -56,6 +57,26 @@ button {
     font-size: medium;
     font-weight: 500;
 }
+a.not-you-div {
+    color: #108A00;
+    font-size: medium;
+    font-weight: 500;
+    text-decoration: none;
+}
+a.not-you-div:hover {
+    color: #18cf00;
+    text-decoration: underline;
+}
 .not-you-div:hover {
     color: #18cf00;
 }
+
+#pry-poy {
+    color: white;
+    text-decoration: none;
+}
+#pry-poy:hover {
+    text-decoration: underline;
+}
+
+
