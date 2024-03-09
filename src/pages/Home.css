@@ -1,0 +1,45 @@
+.FontStyleHereHome {
+    font-family: Rza, Rza-fallback, Georgia, serif;
+    /* font-weight: 50 !important; */
+    color: hsl(113, 100%, 33%) !important;
+    font-size: 500%;
+}
+
+.hero-sub-text {
+    max-width: 70%;
+    font-size:140%;
+    font-weight: 550;
+}
+
+@media only screen and (max-width: 767px) {
+    .col-7 {
+        min-width: 100%;
+    }
+    .FontStyleHereHome {
+        font-size: 270% !important;
+    }
+    .col-5 {
+        display: none;
+    }
+    .hero-sub-text {
+        max-width: none;
+    }
+    #img-width {
+        width:20% !important;
+    }
+
+}
+
+.font-get-started {
+    font-weight: 500;
+}
+
+.card-titles{
+    font-family: Rza, Rza-fallback, Georgia, serif;
+    font-size: 250%;
+    font-weight: 500;
+}
+
+#img-width {
+    width:10%;
+}

@@ -25,7 +25,8 @@
 
 .FontStyleHere {
     font-family: Rza, Rza-fallback, Georgia, serif;
-    font-weight: 540;
+    font-weight: 540 !important;
+    font-size:270%;
     color: black;
 }
 
@@ -40,4 +41,12 @@
 
 #cursor {
     cursor: not-allowed;
+}
+
+@media only screen and (max-width: 767px) {
+    .FontStyleHere {
+        font-weight: 600;
+        min-width: 100%;
+        font-size: xx-large !important;
+    }
 }

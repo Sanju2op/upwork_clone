@@ -18,7 +18,7 @@ const UserType = ({ userType, setUserType, handleContinue }) => {
                     </div>
                     <br />
                     <div className="row">
-                        <div className="col">
+                        <div className="col-md-6">
                             <label>
                                 <div className="card m-2 border-3 ">
                                     <div className="card-body">
@@ -37,7 +37,7 @@ const UserType = ({ userType, setUserType, handleContinue }) => {
                             </label>
                         </div>
 
-                        <div className="col">
+                        <div className="col-md-6">
                             <label>
                                 <div className="card m-2 border-3 ">
                                     <div className="card-body">
