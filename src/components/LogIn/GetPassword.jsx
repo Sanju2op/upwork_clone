@@ -57,13 +57,13 @@ const GetPassword = ({ email, password, setPassword, handleSubmit, handleContinu
 
 
 
-                        <div className="form-group m-3">
+                        {/* <div className="form-group m-3">
                             <input id="loggedin" type="checkbox" className=" alert alert-success form-check-input p-1 mt-2" /> 
                             <label 
                             htmlFor="loggedin" 
                             >&nbsp; <span className="text-muted">Keep me logged in
                             </span></label>
-                        </div>
+                        </div> */}
 
                         <div className="form-group btn_center" >
                             <span title={passwordError || !password.trim() ? "Password cannot be empty" : " You can Log in now"}

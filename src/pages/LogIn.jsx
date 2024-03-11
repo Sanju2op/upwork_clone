@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./LogIn.css";
 import GetEmail from "../components/LogIn/GetEmail";
 import GetPassword from "../components/LogIn/GetPassword";
+import { useNavigate } from 'react-router-dom';
 
 const LogIn = () => {
 
@@ -10,19 +11,32 @@ const LogIn = () => {
   }, []);
 
   const [step, setStep] = useState(1);
-
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async () => {
-   return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log("Email : ", email);
-      console.log("Password : ", password);
-      console.log("Function executed after 4 seconds");
-      setStep(1);
-    }, 3000); // 3000 milliseconds = 3 seconds
-   });
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (response.ok) {
+        // Login successful, handle the response
+        const data = await response.json();
+        console.log('Login successful:', data);
+        navigate('/dashboard')
+      } else {
+        // Login failed, handle the error
+        console.error('Login failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+    }
   }
 
   return (

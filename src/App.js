@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 // import RegisterPage from "./pages/RegisterPage";
 import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route exact path="/" Component={Home} />
           <Route path="/signup" Component={SignUp} />
           <Route path="/login" Component={LogIn} />
+          <Route path="/dashboard" Component={Dashboard} />
         </Routes>
       </div>
     </Router>

@@ -273,7 +273,6 @@ const SignUp = () => {
 
     } else {
 
-      // Requesting Verification Code
       try {
         const response = await fetch('http://localhost:5000/api/sendVerificationCode', {
           method: 'POST',
@@ -283,24 +282,55 @@ const SignUp = () => {
           body: JSON.stringify({ email }),
           credentials: 'include',
         });
-
+      
         if (!response.ok) {
-          throw new Error('Failed to send verification code.');
+          const data = await response.json();
+          if (data.error === 'Email already exists in the database.') {
+            alert('Email already exists. Please use a different email.');
+          } else {
+            throw new Error('Failed to send verification code.');
+          }
+        } else {
+          setStep(3); // Move to the email verification step
         }
-        setStep(3); // Move to the email verification step
       } catch (error) {
         console.error('Error sending verification code:', error);
         alert('An error occurred. Please try again.');
       }
+      
     }
   };
 
-  const handleVerificationSuccess = () => {
-    // Here, you would typically submit the sign up form data to the database
-    // For demonstration purposes, we'll just log the data
-    console.log('User signed up:', { fullName, email, password, country, userType });
-    alert('User signed up successfully!');
+  // const handleVerificationSuccess = () => {
+  //   // Here, you would typically submit the sign up form data to the database
+  //   // For demonstration purposes, we'll just log the data
+  //   console.log('User signed up:', { fullName, email, password, country, userType });
+  //   alert('User signed up successfully!');
+  // };
+
+  const handleVerificationSuccess = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fullName, email, password, country, userType })
+      });
+      if (response.ok) {
+        console.log('User signed up successfully!');
+        alert('User signed up successfully!');
+        window.location.href = '/login';
+      } else {
+        console.error('Failed to sign up user:', response.statusText);
+        alert('Failed to sign up user. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error signing up user:', error.message);
+      alert('Error signing up user. Please try again.');
+    }
   };
+  
 
   // Confirming Verification Code
   const handleSubmit = async (verificationCodeClient) => {
