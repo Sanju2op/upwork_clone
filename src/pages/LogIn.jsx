@@ -29,7 +29,7 @@ const LogIn = () => {
         // Login successful, handle the response
         const data = await response.json();
         console.log('Login successful:', data);
-        navigate('/dashboard')
+        navigate('/dashboard');
       } else {
         // Login failed, handle the error
         console.error('Login failed:', response.statusText);

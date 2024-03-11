@@ -3,16 +3,19 @@ import UserType from "../components/SignUp/UserType";
 import EmailVerification from "../components/SignUp/EmailVerification";
 import SignUpFrom from "../components/SignUp/SignUpForm";
 import "./SignUp.css";
+import { useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
-
+  
   useEffect(() => {
     document.title = "Create an Account - Upwork";
   }, []);
+  
+  const navigate = useNavigate();
 
   const [userType, setUserType] = useState("");
   const [step, setStep] = useState(1);
-
+  
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
@@ -320,7 +323,7 @@ const SignUp = () => {
       if (response.ok) {
         console.log('User signed up successfully!');
         alert('User signed up successfully!');
-        window.location.href = '/login';
+        navigate('/login');
       } else {
         console.error('Failed to sign up user:', response.statusText);
         alert('Failed to sign up user. Please try again.');
