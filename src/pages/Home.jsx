@@ -6,7 +6,7 @@ import "./Home.css";
 import MicrosoftSVG from '../images/microsoft.svg';
 import AirbnbSVG from '../images/airbnb.svg';
 import BissellSVG from '../images/bissell.svg';
-import AstaGIF from "../images/astasticker.gif";
+import AstaGIF from "../images/searching-talent.jpg";
 
 
 

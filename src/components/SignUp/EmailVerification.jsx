@@ -4,8 +4,21 @@ import { Form, Button } from 'react-bootstrap';
 const EmailVerification = ({ email, handleSubmit }) => {
   const [verificationCodeClient, setVerificationCodeClient] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [error, setError] = useState('');
+
   const verifyCode = async (e) => {
     e.preventDefault();
+
+    if (!verificationCodeClient) {
+      setError('Verification code is required');
+      return;
+    }
+
+    if (isNaN(verificationCodeClient)) {
+      setError('Verification code must be a number');
+      return;
+    }
+
     setIsVerifying(true);
     await handleSubmit(verificationCodeClient);
     setIsVerifying(false);
@@ -22,9 +35,16 @@ const EmailVerification = ({ email, handleSubmit }) => {
             <Form.Control
               type="text"
               placeholder="Enter verification code"
-              onChange={(e) => setVerificationCodeClient(e.target.value)}
+              onChange={(e) => {
+                setVerificationCodeClient(e.target.value);
+                setError('');
+              }}
+              isInvalid={!!error}
               required
             />
+            <Form.Control.Feedback type="invalid">
+              {error}
+            </Form.Control.Feedback>
           </Form.Group>
           <br />
           <Button

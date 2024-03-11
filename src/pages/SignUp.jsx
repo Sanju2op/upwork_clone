@@ -335,10 +335,14 @@ const SignUp = () => {
       ) : step === 2 ? (
         <SignUpFrom
           userType={userType}
+          fullName={fullName}
           setFullName={setFullName}
+          email={email}
           setEmail={setEmail}
+          password={password}
           setPassword={setPassword}
           countries={countries}
+          country={country}
           setCountry={setCountry}
           handleSignUp={handleSignUp}
         />
