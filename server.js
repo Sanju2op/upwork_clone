@@ -6,8 +6,8 @@ const MongoStore = require("connect-mongo");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
+// const passport = require("passport");
+// const LocalStrategy = require("passport-local").Strategy;
 
 const app = express();
 const port = 5000;
@@ -106,51 +106,8 @@ app.post("/api/signup", async (req, res) => {
 });
 
 //login processes
-passport.use(new LocalStrategy(
-    { usernameField: 'email' }, // Specify the field for the username
-    async (email, password, done) => {
-      try {
-        const user = await User.findOne({ email, password });
-        if (!user) {
-          return done(null, false, { message: 'Incorrect email or password.' });
-        }
-        return done(null, user);
-      } catch (err) {
-        return done(err);
-      }
-    }
-  ));
-  passport.serializeUser((user, done) => {
-    done(null, user.id);
-  });
-  
-  passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => {
-      done(err, user);
-    });
-  });
-  
-  app.use(passport.initialize());
-  app.use(passport.session());
 
-  app.post('/api/login', passport.authenticate('local'), (req, res) => {
-    req.session.userId = req.user._id;
-    res.status(200).json({ message: 'Login successful', user: req.user });
-  });
-
-  // Server side route to get user data based on session ID
-app.get("/api/user", (req, res) => {
-  // Check if user is authenticated
-  if (req.isAuthenticated()) {
-    // User is authenticated, return user data
-    res.status(200).json({ user: req.user });
-  } else {
-    // User is not authenticated, return 401 unauthorized status
-    res.status(401).json({ error: "Unauthorized" });
-  }
-});
-
-
+// Login route without Passport.js
 // app.post("/api/login", async (req, res) => {
 //   const { email, password } = req.body;
 //   // Find user in the database
@@ -163,6 +120,106 @@ app.get("/api/user", (req, res) => {
 //     res.status(401).json({ message: "Invalid username or password" });
 //   }
 // });
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email, password }).exec();
+    if (user) {
+      req.session.userId = user._id;
+      console.log("user:", user.email, "just logged In");
+      res.status(200).json({ message: 'Login successful', user });
+    } else {
+      res.status(401).json({ error: 'Unauthorized' });
+    }
+  } catch (error) {
+    console.error("Error finding user:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/logout', (req, res) => {
+  // Destroy the session to log the user out
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error logging out:', err);
+      res.status(500).json({ error: 'Failed to logout' });
+      return;
+    }
+    res.sendStatus(200);
+  });
+});
+
+
+// // Get user data route without Passport.js
+app.get('/api/user', async (req, res) => {
+  try {
+    // Check if session is available and has userId
+    if (req.session && req.session.userId) {
+      const user = await User.findOne({ _id: req.session.userId }).exec();
+      if (user) {
+        console.log("user", user.email, "requested session data");
+        res.status(200).json({ user });
+        return;
+      }
+    }
+    console.log("User is unauthorized");
+    res.status(401).json({ error: 'Unauthorized' });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ error: 'Internal Server Error' }); // Generic error for client
+  }
+});
+
+
+
+
+// passport.use(new LocalStrategy(
+//     { usernameField: 'email' }, // Specify the field for the username
+//     async (email, password, done) => {
+//       try {
+//         const user = await User.findOne({ email, password });
+//         if (!user) {
+//           return done(null, false, { message: 'Incorrect email or password.' });
+//         }
+//         return done(null, user);
+//       } catch (err) {
+//         return done(err);
+//       }
+//     }
+//   ));
+//   passport.serializeUser((user, done) => {
+//     done(null, user.id);
+//   });
+  
+//   passport.deserializeUser((id, done) => {
+//     User.findById(id, (err, user) => {
+//       done(err, user);
+//     });
+//   });
+  
+//   app.use(passport.initialize());
+//   app.use(passport.session());
+
+//   app.post('/api/login', passport.authenticate('local'), (req, res) => {
+//     req.session.userId = req.user._id;
+//     console.log("user:", req.user.email, "just logged In");
+//     res.status(200).json({ message: 'Login successful', user: req.user });
+//   });
+
+//   // Server side route to get user data based on session ID
+// app.get("/api/user", (req, res) => {
+//   // Check if user is authenticated
+//   if (req.isAuthenticated()) {
+//     console.log("user", req.user.email, " Requested session data");
+//     res.status(200).json({ user: req.user });
+//   } else {
+//     // User is not authenticated, return 401 unauthorized status
+//     console.log("user", req.user.email, " is unauthorized ");
+//     res.status(401).json({ error: "Unauthorized" });
+//   }
+// });
+
+
 
 //Email verification processes
 const transporter = nodemailer.createTransport({
@@ -245,6 +302,74 @@ app.post("/api/verifyEmail", (req, res) => {
   console.log("Email Verified");
   res.status(200).json({ message: "Email verified successfully." });
 });
+
+//Posting Job
+const jobSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Reference to the User model
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  skillsRequired: {
+    type: [String],
+    required: true
+  },
+  budget: {
+    type: Number,
+    required: true
+  },
+  duration: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const Job = mongoose.model('Job', jobSchema);
+
+app.post('/api/jobs', async (req, res) => {
+  try {
+    const { userId, title, description, skillsRequired, budget, duration } = req.body;
+    const job = new Job({ userId, title, description, skillsRequired, budget, duration });
+    await job.save();
+    res.status(201).json(job);
+  } catch (error) {
+    console.error('Error creating job:', error);
+    res.status(500).json({ error: 'Failed to create job' });
+  }
+});
+
+// Get jobs for a specific user
+app.get('/api/jobs', async (req, res) => {
+  try {
+    const userId = req.query.userId; // Assuming userId is passed as a query parameter
+    if (!userId) {
+      return res.status(400).json({ error: 'userId parameter is required' });
+    }
+
+    const jobs = await Job.find({ userId });
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ error: 'Failed to fetch jobs' });
+  }
+});
+
+
+
+
+
 
 app.listen(port, () => {
   console.log(`\n Server Running at http://localhost:${port}`);
