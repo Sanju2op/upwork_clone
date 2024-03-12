@@ -481,6 +481,71 @@ app.delete("/api/jobs/:jobId", async (req, res) => {
   }
 });
 
+// Proposals processes
+
+//proposal schema
+const proposalSchema = new mongoose.Schema({
+  jobId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Job',
+    required: true,
+  },
+  freelancerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  coverLetter: {
+    type: String,
+    required: true,
+  },
+  rate: {
+    type: Number,
+    required: true,
+  },
+  duration: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'accepted', 'rejected'],
+    default: 'pending',
+  },
+  clientNotes: {
+    type: String,
+  },
+}, { timestamps: true });
+
+const Proposal = mongoose.model('Proposal', proposalSchema);
+
+// Endpoint to submit a proposal
+app.post('/api/submit-proposal', async (req, res) => {
+  const { jobId, freelancerId, coverLetter, rate, duration } = req.body;
+
+  try {
+    // Create a new proposal
+    const proposal = new Proposal({
+      jobId,
+      freelancerId,
+      coverLetter,
+      rate,
+      duration,
+    });
+
+    // Save the proposal to the database
+    await proposal.save();
+
+    // Respond with a success message
+    res.status(201).json({ message: 'Proposal submitted successfully' });
+  } catch (error) {
+    // Handle errors
+    console.error('Error submitting proposal:', error.message);
+    res.status(500).json({ message: 'Failed to submit proposal' });
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`\n Server Running at http://localhost:${port}`);
 });

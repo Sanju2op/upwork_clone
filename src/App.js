@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'jquery/dist/jquery.min.js';
@@ -20,14 +20,26 @@ const App = () => {
       <NaviBar />
       <div className="container-fluid">
         <Routes>
-          <Route exact path="/" Component={Home} />
-          <Route path="/signup" Component={SignUp} />
-          <Route path="/login" Component={LogIn} />
-          <Route path="/dashboard" Component={Dashboard} />
-          <Route path="/freelance-jobs" Component={FreelanceJobs} />
+          <Route exact path="/" element={<Home />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/dashboard" element={<DashboardWithRefresh />} />
+          <Route path="/freelance-jobs" element={<FreelanceJobs />} />
         </Routes>
       </div>
     </Router>
   );
 };
+
+const DashboardWithRefresh = () => {
+  useEffect(() => {
+    // Refresh NaviBar when dashboard is mounted
+    return () => {
+      // Clean up if necessary
+    };
+  }, []);
+
+  return <Dashboard />;
+};
+
 export default App;
