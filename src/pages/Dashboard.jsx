@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ClientDashboard from '../components/dashboard/ClientDashboard';
-import FreelancerDashboard from '../components/dashboard/FreelancerDasboard';
+import FreelancerDashboard from '../components/dashboard/FreelancerDashboard';
+
 import { useNavigate } from 'react-router-dom';
 import "./Dashboard.css";
 
@@ -32,16 +33,17 @@ const Dashboard = () => {
 
   return (
     <div className='container'>
-      {user && user.userType === 'client' ? (
-        <ClientDashboard 
-            userData={user}
-        />
-      ) : (
-        <FreelancerDashboard 
+  {user && user.userType === 'client' ? (
+    <ClientDashboard 
         userData={user}
-        />
-      )}
-    </div>
+    />
+  ) : user && user.userType === 'freelancer' ? (
+    <FreelancerDashboard 
+    userData={user}
+    />
+  ) : null }
+</div>
+
   );
 };
 
