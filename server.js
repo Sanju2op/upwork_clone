@@ -50,10 +50,10 @@ app.use(
       collectionName: "mySessions",
     }),
     cookie: {
-        secure: false, // Set to true if using HTTPS
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
-    }
+      secure: false, // Set to true if using HTTPS
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+    },
   })
 );
 
@@ -120,38 +120,40 @@ app.post("/api/signup", async (req, res) => {
 //     res.status(401).json({ message: "Invalid username or password" });
 //   }
 // });
-app.post('/api/login', async (req, res) => {
+
+//login process
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email, password }).exec();
     if (user) {
       req.session.userId = user._id;
       console.log("user:", user.email, "just logged In");
-      res.status(200).json({ message: 'Login successful', user });
+      res.status(200).json({ message: "Login successful", user });
     } else {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: "Unauthorized" });
     }
   } catch (error) {
     console.error("Error finding user:", error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-app.post('/api/logout', (req, res) => {
+//logout process
+app.post("/api/logout", (req, res) => {
   // Destroy the session to log the user out
   req.session.destroy((err) => {
     if (err) {
-      console.error('Error logging out:', err);
-      res.status(500).json({ error: 'Failed to logout' });
+      console.error("Error logging out:", err);
+      res.status(500).json({ error: "Failed to logout" });
       return;
     }
     res.sendStatus(200);
   });
 });
 
-
 // // Get user data route without Passport.js
-app.get('/api/user', async (req, res) => {
+app.get("/api/user", async (req, res) => {
   try {
     // Check if session is available and has userId
     if (req.session && req.session.userId) {
@@ -163,16 +165,12 @@ app.get('/api/user', async (req, res) => {
       }
     }
     console.log("User is unauthorized");
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: "Unauthorized" });
   } catch (error) {
     console.error("Error fetching user data:", error);
-    res.status(500).json({ error: 'Internal Server Error' }); // Generic error for client
+    res.status(500).json({ error: "Internal Server Error" }); // Generic error for client
   }
 });
-
-
-
-
 // passport.use(new LocalStrategy(
 //     { usernameField: 'email' }, // Specify the field for the username
 //     async (email, password, done) => {
@@ -190,13 +188,13 @@ app.get('/api/user', async (req, res) => {
 //   passport.serializeUser((user, done) => {
 //     done(null, user.id);
 //   });
-  
+
 //   passport.deserializeUser((id, done) => {
 //     User.findById(id, (err, user) => {
 //       done(err, user);
 //     });
 //   });
-  
+
 //   app.use(passport.initialize());
 //   app.use(passport.session());
 
@@ -218,8 +216,6 @@ app.get('/api/user', async (req, res) => {
 //     res.status(401).json({ error: "Unauthorized" });
 //   }
 // });
-
-
 
 //Email verification processes
 const transporter = nodemailer.createTransport({
@@ -307,103 +303,152 @@ app.post("/api/verifyEmail", (req, res) => {
 const jobSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the User model
-    required: true
+    ref: "User", // Reference to the User model
+    required: true,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   skillsRequired: {
     type: [String],
-    required: true
+    required: true,
   },
   budget: {
     type: Number,
-    required: true
+    required: true,
   },
   duration: {
     type: String,
-    required: true
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["open", "closed"], // Example status values
+    default: "open",
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   lastUpdated: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-
-const Job = mongoose.model('Job', jobSchema);
+const Job = mongoose.model("Job", jobSchema);
 
 //upload jobs
-app.post('/api/jobs', async (req, res) => {
+app.post("/api/jobs", async (req, res) => {
   try {
-    const { userId, title, description, skillsRequired, budget, duration, createdAt } = req.body;
-    const job = new Job({ userId, title, description, skillsRequired, budget, duration, createdAt });
-    await job.save();
-    res.status(201).json(job);
-  } catch (error) {
-    console.error('Error creating job:', error);
-    res.status(500).json({ error: 'Failed to create job' });
-  }
-});
-
-// Get jobs for a specific user
-app.get('/api/jobs', async (req, res) => {
-  try {
-    const userId = req.query.userId; // Assuming userId is passed as a query parameter
-    if (!userId) {
-      return res.status(400).json({ error: 'userId parameter is required' });
-    }
-
-    const jobs = await Job.find({ userId });
-    res.status(200).json(jobs);
-  } catch (error) {
-    console.error('Error fetching jobs:', error);
-    res.status(500).json({ error: 'Failed to fetch jobs' });
-  }
-});
-
-//update jobs
-app.put('/api/jobs/:id', async (req, res) => {
-  const jobId = req.params.id;
-  const { userId, title, description, skillsRequired, budget, duration } = req.body;
-
-  try {
-    const updatedJob = await Job.findByIdAndUpdate(jobId, {
+    const {
       userId,
       title,
       description,
       skillsRequired,
       budget,
       duration,
-      lastUpdated: Date.now() // Update the lastUpdated field to the current date and time
-    }, { new: true });
+      createdAt,
+    } = req.body;
+    const job = new Job({
+      userId,
+      title,
+      description,
+      skillsRequired,
+      budget,
+      duration,
+      createdAt,
+    });
+    await job.save();
+    res.status(201).json(job);
+  } catch (error) {
+    console.error("Error creating job:", error);
+    res.status(500).json({ error: "Failed to create job" });
+  }
+});
+
+// Get jobs for a specific user
+app.get("/api/jobs", async (req, res) => {
+  try {
+    const userId = req.query.userId; // Assuming userId is passed as a query parameter
+    if (!userId) {
+      return res.status(400).json({ error: "userId parameter is required" });
+    }
+
+    const jobs = await Job.find({ userId });
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ error: "Failed to fetch jobs" });
+  }
+});
+
+//update jobs
+app.put("/api/jobs/:id", async (req, res) => {
+  const jobId = req.params.id;
+  const { userId, title, description, skillsRequired, budget, duration } =
+    req.body;
+
+  try {
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      {
+        userId,
+        title,
+        description,
+        skillsRequired,
+        budget,
+        duration,
+        lastUpdated: Date.now(), // Update the lastUpdated field to the current date and time
+      },
+      { new: true }
+    );
 
     if (!updatedJob) {
-      return res.status(404).send('Job not found');
+      return res.status(404).send("Job not found");
     }
 
     res.json(updatedJob);
   } catch (error) {
-    console.error('Error updating job:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error updating job:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
+// Status:close for jobs
+app.put("/api/jobs/:jobId/close", async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    job.status = "closed";
+    await job.save();
+    res.status(200).json({ message: "Job closed successfully", job });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
-
-
-
-
+// Delete Jobs
+app.delete("/api/jobs/:jobId", async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+    // Use Mongoose to find and delete the job by ID
+    await Job.findByIdAndDelete(jobId);
+    res.status(200).send({ message: "Job deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    res.status(500).send({ message: "Failed to delete job" });
+  }
+});
 
 app.listen(port, () => {
   console.log(`\n Server Running at http://localhost:${port}`);
