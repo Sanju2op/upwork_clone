@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ClientDashboard from '../components/dashboard/ClientDashboard';
 import FreelancerDashboard from '../components/dashboard/FreelancerDasboard';
 import { useNavigate } from 'react-router-dom';
+import "./Dashboard.css";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);

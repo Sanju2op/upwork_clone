@@ -333,15 +333,21 @@ const jobSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now
   }
 });
 
+
 const Job = mongoose.model('Job', jobSchema);
 
+//upload jobs
 app.post('/api/jobs', async (req, res) => {
   try {
-    const { userId, title, description, skillsRequired, budget, duration } = req.body;
-    const job = new Job({ userId, title, description, skillsRequired, budget, duration });
+    const { userId, title, description, skillsRequired, budget, duration, createdAt } = req.body;
+    const job = new Job({ userId, title, description, skillsRequired, budget, duration, createdAt });
     await job.save();
     res.status(201).json(job);
   } catch (error) {
@@ -365,6 +371,34 @@ app.get('/api/jobs', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch jobs' });
   }
 });
+
+//update jobs
+app.put('/api/jobs/:id', async (req, res) => {
+  const jobId = req.params.id;
+  const { userId, title, description, skillsRequired, budget, duration } = req.body;
+
+  try {
+    const updatedJob = await Job.findByIdAndUpdate(jobId, {
+      userId,
+      title,
+      description,
+      skillsRequired,
+      budget,
+      duration,
+      lastUpdated: Date.now() // Update the lastUpdated field to the current date and time
+    }, { new: true });
+
+    if (!updatedJob) {
+      return res.status(404).send('Job not found');
+    }
+
+    res.json(updatedJob);
+  } catch (error) {
+    console.error('Error updating job:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 
