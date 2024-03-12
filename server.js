@@ -152,7 +152,7 @@ app.post("/api/logout", (req, res) => {
   });
 });
 
-// // Get user data route without Passport.js
+// Get user data route without Passport.js
 app.get("/api/user", async (req, res) => {
   try {
     // Check if session is available and has userId
@@ -339,7 +339,12 @@ const jobSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  country: {
+    type: String,
+    ref: "User.country", // Reference to the country of the User who posted the job
+  },
 });
+
 
 const Job = mongoose.model("Job", jobSchema);
 
@@ -387,6 +392,32 @@ app.get("/api/jobs", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
+
+// Get all jobs for find work page
+app.get("/api/jobs/all", async (req, res) => {
+  try {
+    const jobs = await Job.find().populate({
+      path: "userId",
+      select: "country",
+    });
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ error: "Failed to fetch jobs" });
+  }
+});
+
+// Get all jobs
+// app.get("/api/jobs/all", async (req, res) => {
+//   try {
+//     const jobs = await Job.find();
+//     res.status(200).json(jobs);
+//   } catch (error) {
+//     console.error("Error fetching jobs:", error);
+//     res.status(500).json({ error: "Failed to fetch jobs" });
+//   }
+// });
+
 
 //update jobs
 app.put("/api/jobs/:id", async (req, res) => {

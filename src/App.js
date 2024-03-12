@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
+import FreelanceJobs from "./pages/FreelanceJobs";
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
           <Route path="/signup" Component={SignUp} />
           <Route path="/login" Component={LogIn} />
           <Route path="/dashboard" Component={Dashboard} />
+          <Route path="/freelance-jobs" Component={FreelanceJobs} />
         </Routes>
       </div>
     </Router>
