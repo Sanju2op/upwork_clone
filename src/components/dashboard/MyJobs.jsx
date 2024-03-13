@@ -118,10 +118,18 @@ const MyJobs = ({ userData, comeBack }) => {
 
 
     return (
-        <div className="container-fluid bg-dark text-light p-3 rounded-3">
+        <div className="container-fluid bg-dark text-light p-2  mb-5 rounded-3">
             {step === 1 ? (
                 <>
-                    <h1 className="mt-4"> Your Jobs</h1>
+                    <h1 className="m-1"> 
+                <button
+                    className="btn btn-success m-1"
+                    onClick={comeBack}
+                >
+                    <i className="bi bi-arrow-left"></i> Go Back
+                </button>
+                Your Jobs</h1>
+                <div style={{ maxHeight: '600px', overflowY: 'scroll' }}>
                     <ul className="list-group">
                         {jobs.map(job => (
                             <li key={job._id} className="list-group-item d-flex justify-content-between align-items-start">
@@ -164,13 +172,9 @@ const MyJobs = ({ userData, comeBack }) => {
                             </li>
                         ))}
                     </ul>
-                    <button
-                        className="btn btn-success m-5"
-                        onClick={comeBack}
-                    >
-                        Go Back
-                    </button>
-                </>
+                </div>
+            </>
+            
 
             ) : (
                 <JobEditingForm

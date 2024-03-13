@@ -73,7 +73,6 @@ const FreelanceJobs = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add any additional headers if needed
         },
         body: JSON.stringify({ jobId, freelancerId, coverLetter, rate, duration }),
         credentials:'include',
@@ -84,14 +83,12 @@ const FreelanceJobs = () => {
       }
   
       console.log('Proposal submitted successfully');
-      // Add any further actions (e.g., redirect or update state) after successful submission
       alert('Proposal submitted successfully');
     } catch (error) {
       console.error('Error submitting proposal:', error.message);
-      // Handle error (e.g., display error message to user)
-
     }
-  };
+};
+
 
   
 

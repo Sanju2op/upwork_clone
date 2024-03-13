@@ -484,6 +484,39 @@ app.delete("/api/jobs/:jobId", async (req, res) => {
 // Proposals processes
 
 //proposal schema
+// const proposalSchema = new mongoose.Schema({
+//   jobId: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Job',
+//     required: true,
+//   },
+//   freelancerId: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'User',
+//     required: true,
+//   },
+//   coverLetter: {
+//     type: String,
+//     required: true,
+//   },
+//   rate: {
+//     type: Number,
+//     required: true,
+//   },
+//   duration: {
+//     type: String,
+//     required: true,
+//   },
+//   status: {
+//     type: String,
+//     enum: ['pending', 'accepted', 'rejected'],
+//     default: 'pending',
+//   },
+//   clientNotes: {
+//     type: String,
+//   },
+// }, { timestamps: true });
+
 const proposalSchema = new mongoose.Schema({
   jobId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -491,6 +524,11 @@ const proposalSchema = new mongoose.Schema({
     required: true,
   },
   freelancerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  clientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
@@ -524,10 +562,17 @@ app.post('/api/submit-proposal', async (req, res) => {
   const { jobId, freelancerId, coverLetter, rate, duration } = req.body;
 
   try {
+    // Find the job to get the clientId
+    const job = await Job.findById(jobId);
+    if (!job) {
+      throw new Error('Job not found');
+    }
+
     // Create a new proposal
     const proposal = new Proposal({
       jobId,
       freelancerId,
+      clientId: job.userId, // Set the clientId to the userId of the job poster
       coverLetter,
       rate,
       duration,
@@ -544,6 +589,34 @@ app.post('/api/submit-proposal', async (req, res) => {
     res.status(500).json({ message: 'Failed to submit proposal' });
   }
 });
+
+
+
+
+//proposals request about specific user for freelancer
+app.get('/api/proposals', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const proposals = await Proposal.find({ freelancerId: userId })
+      .populate({
+        path: 'jobId',
+        select: 'title duration budget',
+        populate: {
+          path: 'userId',
+          select: 'fullName email country',
+        },
+      });
+
+    res.json(proposals);
+  } catch (error) {
+    console.error('Error fetching proposals:', error.message);
+    res.status(500).json({ message: 'Failed to fetch proposals' });
+  }
+});
+
+
+
+
 
 
 app.listen(port, () => {

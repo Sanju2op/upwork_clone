@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import CountryName from "../CountryName";
+import FreelancerProposals from "./FreelancerProposals";
 
 const FreelancerDashboard = ({ userData }) => {
   const [step, setStep] = useState(1);
@@ -35,6 +36,11 @@ const FreelancerDashboard = ({ userData }) => {
             </div>
           </div>
         </>
+      ) : step === 2 && userData ? (
+        <FreelancerProposals 
+        userData={userData}
+        Back={() => setStep(1)}
+        />
       ) : null}
     </div>
   )
