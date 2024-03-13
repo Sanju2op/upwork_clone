@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import CountryName from "../../CountryName";
 import FreelancerProposals from "./FreelancerProposals";
+import FreelancerJobs from "./FreelancerJobs";
 
 const FreelancerDashboard = ({ userData }) => {
   const [step, setStep] = useState(1);
@@ -19,7 +20,7 @@ const FreelancerDashboard = ({ userData }) => {
                   Proposals
                 </button>
                 <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(3)}>
-                  My Jobs
+                  Your Jobs
                 </button>
                 {/* <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(4)}>
                   Profile
@@ -38,6 +39,11 @@ const FreelancerDashboard = ({ userData }) => {
         </>
       ) : step === 2 && userData ? (
         <FreelancerProposals 
+        userData={userData}
+        Back={() => setStep(1)}
+        />
+      ) : step === 3 && userData ? (
+        <FreelancerJobs 
         userData={userData}
         Back={() => setStep(1)}
         />

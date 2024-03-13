@@ -328,7 +328,7 @@ const jobSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["open", "closed"], // Example status values
+    enum: ["open", "closed", "pending_completion_confirmation"], // Example status values
     default: "open",
   },
   createdAt: {
@@ -462,6 +462,32 @@ app.put("/api/jobs/:id", async (req, res) => {
   }
 });
 
+// status : confirm_completion jobs
+app.put("/api/jobs/:id/confirm-completion", async (req, res) => {
+  const jobId = req.params.id;
+
+  try {
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      {
+        status: "pending_completion_confirmation",
+        lastUpdated: Date.now(), // Update the lastUpdated field to the current date and time
+      },
+      { new: true }
+    );
+
+    if (!updatedJob) {
+      return res.status(404).send("Job not found");
+    }
+
+    res.json(updatedJob);
+  } catch (error) {
+    console.error("Error updating status of job:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 // Status:close for jobs
 app.put("/api/jobs/:jobId/close", async (req, res) => {
   try {
@@ -573,7 +599,6 @@ app.get('/api/proposals', async (req, res) => {
     const proposals = await Proposal.find({ freelancerId: userId })
       .populate({
         path: 'jobId',
-        select: 'title duration budget',
         populate: {
           path: 'userId',
           select: 'fullName email country',
@@ -586,6 +611,26 @@ app.get('/api/proposals', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch proposals' });
   }
 });
+
+// app.get('/api/proposals', async (req, res) => {
+//   try {
+//     const { userId } = req.query;
+//     const proposals = await Proposal.find({ freelancerId: userId })
+//       .populate({
+//         path: 'jobId',
+//         select: 'title duration budget',
+//         populate: {
+//           path: 'userId',
+//           select: 'fullName email country',
+//         },
+//       });
+
+//     res.json(proposals);
+//   } catch (error) {
+//     console.error('Error fetching proposals:', error.message);
+//     res.status(500).json({ message: 'Failed to fetch proposals' });
+//   }
+// });
 
 // for client to fetch proposals about specific job
 app.get('/api/proposals/:jobId', async (req, res) => {

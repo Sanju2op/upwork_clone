@@ -70,7 +70,7 @@ const FreelancerProposals = ({ userData, Back }) => {
             ) : null }
             {step === 1 && (
                 <ul className="list-group">
-                    {proposals.map(proposal => (
+                    {proposals.filter(proposal => proposal.status !== "accepted").map(proposal => (
                         <li key={proposal._id} className="list-group-item d-flex justify-content-between align-items-start border border-5 border-dark rounded-4">
                             {/* Proposal details */}
                             <div>

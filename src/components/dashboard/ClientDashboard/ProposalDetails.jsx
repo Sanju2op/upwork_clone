@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import CountryName from "../../CountryName";
+import { Spinner } from "react-bootstrap";
+import PaymentGateway from "./PaymentGateWay";
 
 const ProposalDetails = ({ userData, jobData, Back }) => {
     const [proposals, setProposals] = useState([]);
     const [selectedProposal, setSelectedProposal] = useState(null);
-    const [acceptingProposal, setAcceptingProposal] = useState(false); // State to track if proposal is being accepted
+    const [acceptingProposal, setAcceptingProposal] = useState(false);
+    const [showPaymentGateway, setShowPaymentGateway] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         const fetchProposals = async (jobId) => {
@@ -28,6 +32,11 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
 
     const handleAcceptProposal = async () => {
         setAcceptingProposal(true); // Set to true when starting the accept process
+        setIsProcessing(true);
+    setShowPaymentGateway(true);
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate payment process
+    setIsProcessing(false);
+    setShowPaymentGateway(false);
         try {
             const response = await fetch(`http://localhost:5000/api/proposals/${selectedProposal._id}/accept`, {
                 method: 'PUT',
@@ -46,10 +55,6 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
             });
             setProposals(updatedProposals);
             setSelectedProposal({ ...selectedProposal, status: 'accepted' }); // Update the selectedProposal status
-
-            // console.log('Selected Proposal:', selectedProposal);
-            // console.log('Selected Freelancer ID:', selectedProposal.freelancerId);
-            // console.log('Selected Freelancer Name:', selectedProposal.freelancerId.fullName);
 
             // // Create a contract
             const contract = {
@@ -95,9 +100,14 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
         }
     };
 
-
-
     return (
+        <div>
+            {showPaymentGateway && <PaymentGateway />}
+      {isProcessing ? (
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      ) : (
         <div className="container mt-4 p-3 bg-light text-dark rounded">
             <h1>
                 <button
@@ -163,6 +173,8 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
             ) : (
                 <p>No proposals yet.</p>
             )}
+        </div>
+        )}
         </div>
     );
 };
