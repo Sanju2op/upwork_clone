@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import JobPostingForm from "./JobPostingForm";
 import MyJobs from "./MyJobs";
 // import JobEditingForm from "./JobEditingForm";
-import CountryName from "../CountryName";
+import CountryName from "../../CountryName";
+import ClientJobProposals from "./ClientJobProposals";
 
 const ClientDashboard = ({ userData }) => {
   //const [jobs, setJobs] = useState([]);
@@ -62,9 +63,9 @@ const ClientDashboard = ({ userData }) => {
                 <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(3)}>
                   My Jobs
                 </button>
-                {/* <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(4)}>
-                  Profile
-                </button> */}
+                <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(4)}>
+                  Job Proposals
+                </button>
               </div>
             </div>
 
@@ -90,6 +91,11 @@ const ClientDashboard = ({ userData }) => {
         />
 
 
+      ) : step === 4 && userData ?(
+        <ClientJobProposals 
+        userData={userData}
+        comeBack={() => setStep(1)}
+        />
       ) : null}
     </div>
 

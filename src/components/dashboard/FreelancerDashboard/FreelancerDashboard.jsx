@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CountryName from "../CountryName";
+import CountryName from "../../CountryName";
 import FreelancerProposals from "./FreelancerProposals";
 
 const FreelancerDashboard = ({ userData }) => {

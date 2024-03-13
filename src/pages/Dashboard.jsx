@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ClientDashboard from '../components/dashboard/ClientDashboard';
-import FreelancerDashboard from '../components/dashboard/FreelancerDashboard';
+// import ClientDashboard from '../components/dashboard/ClientDashboard';
+import ClientDashboard from '../components/dashboard/ClientDashboard/ClientDashboard';
+// import FreelancerDashboard from '../components/dashboard/FreelancerDashboard';
+import FreelancerDashboard from '../components/dashboard/FreelancerDashboard/FreelancerDashboard';
 
 import { useNavigate } from 'react-router-dom';
 import "./Dashboard.css";

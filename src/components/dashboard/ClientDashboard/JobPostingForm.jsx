@@ -25,7 +25,10 @@ const JobPostingForm = ({ setJobData, comeBack }) => {
   };
 
   return (
-    <div className="p-5 text-light bg-dark">
+    <div className="p-3 text-light bg-dark rounded-4">
+      <h1 className='m-2'> 
+      <button type="button" onClick={comeBack} className="btn btn-success m-2"><i className="bi bi-arrow-bar-left"></i> Go Back</button>
+        Post a new Job</h1>
         <form onSubmit={handleSubmit}>
       <div className="mb-3">
         <label className="form-label">Job Title:</label>
@@ -42,7 +45,7 @@ const JobPostingForm = ({ setJobData, comeBack }) => {
       <div className="mb-3">
   <label className="form-label">Budget:</label>
   <div className="input-group">
-    <span className="input-group-text">$</span>
+    <span className="input-group-text"><b>$</b></span>
     <input type="text" className="form-control" value={budget} onChange={(e) => setBudget(e.target.value)} />
   </div>
 </div>
@@ -50,8 +53,7 @@ const JobPostingForm = ({ setJobData, comeBack }) => {
         <label className="form-label">Duration:</label>
         <input type="text" className="form-control" value={duration} onChange={(e) => setDuration(e.target.value)} />
       </div>
-      <button type="submit" className="btn btn-primary m-4">Post Job</button>
-      <button type="button" onClick={comeBack} className="btn btn-primary m-4">Go Back</button>
+      <button type="submit" className="btn btn-lg btn-primary mt-1">Post Job</button>
     </form>
     </div>
   );

@@ -393,13 +393,15 @@ app.get("/api/jobs", async (req, res) => {
   }
 });
 
-// Get all jobs for find work page
-app.get("/api/jobs/all", async (req, res) => {
+// Get jobs for a specific user with closed jobs filtered out
+app.get("/api/jobs/open", async (req, res) => {
   try {
-    const jobs = await Job.find().populate({
-      path: "userId",
-      select: "country",
-    });
+    const userId = req.query.userId; // Assuming userId is passed as a query parameter
+    if (!userId) {
+      return res.status(400).json({ error: "userId parameter is required" });
+    }
+
+    const jobs = await Job.find({ userId, status: { $ne: "closed" } });
     res.status(200).json(jobs);
   } catch (error) {
     console.error("Error fetching jobs:", error);
@@ -407,16 +409,25 @@ app.get("/api/jobs/all", async (req, res) => {
   }
 });
 
-// Get all jobs
-// app.get("/api/jobs/all", async (req, res) => {
-//   try {
-//     const jobs = await Job.find();
-//     res.status(200).json(jobs);
-//   } catch (error) {
-//     console.error("Error fetching jobs:", error);
-//     res.status(500).json({ error: "Failed to fetch jobs" });
-//   }
-// });
+
+
+// Get all jobs for find work page
+app.get("/api/jobs/all", async (req, res) => {
+  try {
+    // const jobs = await Job.find().populate({
+    //   path: "userId",
+    //   select: "country",
+    // });
+    const jobs = await Job.find({ status: { $ne: "closed" } }).populate({
+        path: "userId",
+        select: "country",
+      });
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ error: "Failed to fetch jobs" });
+  }
+});
 
 
 //update jobs
@@ -482,41 +493,6 @@ app.delete("/api/jobs/:jobId", async (req, res) => {
 });
 
 // Proposals processes
-
-//proposal schema
-// const proposalSchema = new mongoose.Schema({
-//   jobId: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'Job',
-//     required: true,
-//   },
-//   freelancerId: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'User',
-//     required: true,
-//   },
-//   coverLetter: {
-//     type: String,
-//     required: true,
-//   },
-//   rate: {
-//     type: Number,
-//     required: true,
-//   },
-//   duration: {
-//     type: String,
-//     required: true,
-//   },
-//   status: {
-//     type: String,
-//     enum: ['pending', 'accepted', 'rejected'],
-//     default: 'pending',
-//   },
-//   clientNotes: {
-//     type: String,
-//   },
-// }, { timestamps: true });
-
 const proposalSchema = new mongoose.Schema({
   jobId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -547,7 +523,7 @@ const proposalSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected'],
+    enum: ['pending', 'accepted', 'rejected','in_progress'],
     default: 'pending',
   },
   clientNotes: {
@@ -590,9 +566,6 @@ app.post('/api/submit-proposal', async (req, res) => {
   }
 });
 
-
-
-
 //proposals request about specific user for freelancer
 app.get('/api/proposals', async (req, res) => {
   try {
@@ -613,6 +586,63 @@ app.get('/api/proposals', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch proposals' });
   }
 });
+
+// for client to fetch proposals about specific job
+app.get('/api/proposals/:jobId', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const proposals = await Proposal.find({ jobId })
+      .populate({
+        path: 'freelancerId',
+        select: 'fullName email country',
+      });
+
+    res.json(proposals);
+  } catch (error) {
+    console.error('Error fetching proposals:', error.message);
+    res.status(500).json({ message: 'Failed to fetch proposals' });
+  }
+});
+
+// Endpoint for accepting a proposal
+app.put("/api/proposals/:id/accept", async (req, res) => {
+  const proposalId = req.params.id;
+
+  try {
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId,
+      { status: "accepted" },
+      { new: true }
+    ).populate('freelancerId').populate('jobId'); // Populate the freelancerId and jobId fields
+
+    if (!updatedProposal) {
+      return res.status(404).send("Proposal not found");
+    }
+
+    // Now updatedProposal.freelancerId and updatedProposal.jobId should contain the full documents
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: updatedProposal.freelancerId.email,
+      subject: "Your proposal has been accepted",
+      text: `Congratulations! Your proposal for the job "${updatedProposal.jobId.title}" has been accepted.`,
+    };
+
+    // Send email notification
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ error: "Failed to send email notification." });
+      } else {
+        console.log("Email sent:", info.response);
+        res.status(200).json({ message: "Email notification sent successfully." });
+      }
+    });
+  } catch (error) {
+    console.error("Error accepting proposal:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 
 

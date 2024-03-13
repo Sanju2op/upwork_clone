@@ -1,5 +1,5 @@
 import React from "react";
-import CountryName from "../CountryName";
+import CountryName from "../../CountryName";
 
 const FreelancerProposalDetails = ({ proposalData,  Back }) => {
     return (
