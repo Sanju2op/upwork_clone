@@ -523,7 +523,7 @@ const proposalSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected','in_progress'],
+    enum: ['pending', 'accepted', 'rejected','withdrawn'],
     default: 'pending',
   },
   clientNotes: {
@@ -644,8 +644,133 @@ app.put("/api/proposals/:id/accept", async (req, res) => {
 });
 
 
+// contracts Schema
+const contractSchema = new mongoose.Schema({
+  jobId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Job',
+      required: true
+  },
+  jobTitle: {
+      type: String,
+      required: true
+  },
+  jobDescription: {
+      type: String,
+      required: true
+  },
+  clientName: {
+      type: String,
+      required: true
+  },
+  freelancerName: {
+      type: String,
+      required: true
+  },
+  agreedPrice: {
+      type: Number,
+      required: true
+  },
+  // Add more fields as needed
+});
 
+const Contract = mongoose.model('Contract', contractSchema);
 
+// Endpoint for creating a contract
+app.post("/api/contracts", async (req, res) => {
+  const { jobId, jobTitle, jobDescription, clientName, freelancerName, agreedPrice, clientEmail, freelancerEmail } = req.body;
+
+  try {
+      // Create a new contract document
+      const contract = new Contract({
+          jobId,
+          jobTitle,
+          jobDescription,
+          clientName,
+          freelancerName,
+          agreedPrice,
+          // Add more fields as needed
+      });
+
+      // Save the contract to the database
+      await contract.save();
+
+      // Send contract details to both client and freelancer
+      const clientMailOptions = {
+          from: "sanjaylagaria79901@gmail.com",
+          to: clientEmail,
+          subject: "Contract Details",
+          text: `Dear ${clientName},\n\nCongratulations! we are glad that you found freelancder ${freelancerName} for the job "${jobTitle}".\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nFreelancer Name: ${freelancerName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
+      };
+      transporter.sendMail(clientMailOptions, (clientError, clientInfo) => {
+          if (clientError) {
+              console.error("Error sending client email:", clientError);
+          } else {
+              console.log("Client email sent:", clientInfo.response);
+          }
+      });
+
+      const freelancerMailOptions = {
+          from: "sanjaylagaria79901@gmail.com",
+          to: freelancerEmail,
+          subject: "Contract Details",
+          text: `Dear ${freelancerName},\n\nCongratulations! Your proposal for the job "${jobTitle}" has been accepted by the client "${clientName}" .\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nClient Name: ${clientName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
+      };
+      transporter.sendMail(freelancerMailOptions, (freelancerError, freelancerInfo) => {
+          if (freelancerError) {
+              console.error("Error sending freelancer email:", freelancerError);
+          } else {
+              console.log("Freelancer email sent:", freelancerInfo.response);
+          }
+      });
+
+      res.status(201).json({ message: "Contract created successfully", contract });
+  } catch (error) {
+      console.error("Error creating contract:", error);
+      res.status(500).json({ error: "Failed to create contract" });
+  }
+});
+
+// proposal withdrawal
+app.put("/api/proposals/:id/withdraw", async (req, res) => {
+  const proposalId = req.params.id;
+
+  try {
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId,
+      {
+        status: "withdrawn",
+      },
+      { new: true }
+    ).populate('freelancerId')
+    .populate('clientId');
+
+    if (!updatedProposal) {
+      return res.status(404).send("Proposal not found");
+    }
+
+    // Send email notification to both parties
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: [updatedProposal.freelancerId.email, updatedProposal.clientId.email],
+      subject: "Proposal Withdrawn",
+      text: `The proposal for the job "${updatedProposal.jobId.title}" has been withdrawn.`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ error: "Failed to send email notification." });
+      } else {
+        console.log("Email sent:", info.response);
+        res.status(200).json({ message: "Email notification sent successfully." });
+      }
+    });
+  } catch (error) {
+    console.error("Error withdrawing proposal:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 
 

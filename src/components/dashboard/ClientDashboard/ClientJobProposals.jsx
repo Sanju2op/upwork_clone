@@ -73,6 +73,7 @@ const ClientJobProposals = ({ userData, comeBack }) => {
            ): step === 2 && jobData ? (
             <ProposalDetails 
             jobData={jobData}
+            userData={userData}
             Back={()=> setStep(1)}
             />
            ):null}

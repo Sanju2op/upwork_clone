@@ -12,7 +12,7 @@ const FreelancerProposalDetails = ({ proposalData,  Back }) => {
                 <div className="card-body">
                     <h4 className="card-title">{proposalData.jobId.title}</h4>
                     <p className="card-text"><strong>Client:</strong> {proposalData.jobId.userId.fullName}</p>
-                    <p className="card-text"><strong><i className="bi bi-geo-alt"></i></strong> <CountryName countryCode={proposalData.jobId.userId.country} /></p>
+                    <p className="card-text"><strong><i className="bi bi-geo-alt text-success"></i></strong> <CountryName countryCode={proposalData.jobId.userId.country} /></p>
                     <p className="card-text"><strong>Date Submitted:</strong> {new Date(proposalData.createdAt).toLocaleDateString()} at {new Date(proposalData.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     <hr/>
                     <p className="card-text"><strong>Your Bid:</strong> ${proposalData.rate}</p>

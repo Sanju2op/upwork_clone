@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CountryName from "../../CountryName";
 
-const ProposalDetails = ({ jobData, Back }) => {
+const ProposalDetails = ({ userData, jobData, Back }) => {
     const [proposals, setProposals] = useState([]);
     const [selectedProposal, setSelectedProposal] = useState(null);
     const [acceptingProposal, setAcceptingProposal] = useState(false); // State to track if proposal is being accepted
@@ -34,6 +34,7 @@ const ProposalDetails = ({ jobData, Back }) => {
                 credentials: 'include',
             });
             if (!response.ok) {
+                alert('Failed to accept proposal');
                 throw new Error('Failed to accept proposal');
             }
             // Update the proposal status locally
@@ -45,6 +46,27 @@ const ProposalDetails = ({ jobData, Back }) => {
             });
             setProposals(updatedProposals);
             setSelectedProposal({ ...selectedProposal, status: 'accepted' }); // Update the selectedProposal status
+
+            // console.log('Selected Proposal:', selectedProposal);
+            // console.log('Selected Freelancer ID:', selectedProposal.freelancerId);
+            // console.log('Selected Freelancer Name:', selectedProposal.freelancerId.fullName);
+
+            // // Create a contract
+            const contract = {
+                jobId: selectedProposal.jobId,
+                jobTitle: jobData.title,
+                jobDescription: jobData.description,
+                clientName: userData.fullName,
+                freelancerName: selectedProposal.freelancerId.fullName,
+                agreedPrice: selectedProposal.rate,
+                clientEmail: userData.email,
+                freelancerEmail: selectedProposal.freelancerId.email
+                // Add more details as needed
+            };
+
+            // Save the contract to the database (you need to implement this)
+            await saveContract(contract);
+
             alert("Proposal accepted");
         } catch (error) {
             console.error(error);
@@ -52,7 +74,28 @@ const ProposalDetails = ({ jobData, Back }) => {
             setAcceptingProposal(false); // Reset to false when the accept process is complete
         }
     };
-    
+
+    // Function to save the contract to the database (you need to implement this)
+    const saveContract = async (contract) => {
+        try {
+            const response = await fetch('http://localhost:5000/api/contracts', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contract),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to save contract');
+            }
+            // Contract saved successfully
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+
 
     return (
         <div className="container mt-4 p-3 bg-light text-dark rounded">
@@ -88,7 +131,7 @@ const ProposalDetails = ({ jobData, Back }) => {
                         <div className="col-8 bg-dark text-light p-4 rounded-4 mr-2">
                             <div>
                                 <button className="btn btn-success m-2 rounded-3" onClick={() => setSelectedProposal(null)}><i className="bi bi-x-circle"></i></button>
-                                {selectedProposal.status !== "accepted" && (
+                                {selectedProposal.status === "pending" && (
                                     <button
                                         className="btn btn-primary m-2 rounded-3"
                                         onClick={handleAcceptProposal}

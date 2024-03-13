@@ -5,6 +5,7 @@ const FreelancerProposals = ({ userData, Back }) => {
     const [proposals, setProposals] = useState([]);
     const [step, setStep] = useState(1);
     const [proposalData, setProposalData] = useState('');
+    const [withdrawingProposal, setWithdrawingProposal] = useState(false); // State to track withdrawal process
 
     useEffect(() => {
         if (!userData || !userData._id) {
@@ -32,6 +33,33 @@ const FreelancerProposals = ({ userData, Back }) => {
         await setProposalData(proposalData);
         setStep(2);
     }
+    
+    const handleProposalWithdrawal = async (proposal) => {
+        setWithdrawingProposal(true);
+        try {
+            const response = await fetch(`http://localhost:5000/api/proposals/${proposal._id}/withdraw`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to withdraw proposal');
+            }
+            // Update the proposal status locally
+            const updatedProposals = proposals.map(p => {
+                if (p._id === proposal._id) {
+                    return { ...p, status: 'withdrawn' };
+                }
+                return p;
+            });
+            setProposals(updatedProposals);
+            alert("Proposal withdrawn");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setWithdrawingProposal(false); // Reset to false when the withdrawal process is complete
+        }
+    };
+    
     return (
         <div className="container mt-2 bg-dark text-light p-2 rounded-3">
             { step === 1 ?(
@@ -40,10 +68,11 @@ const FreelancerProposals = ({ userData, Back }) => {
                 My Proposals
             </h1>
             ) : null }
-            {step === 1 ? (
+            {step === 1 && (
                 <ul className="list-group">
                     {proposals.map(proposal => (
-                        <li key={proposal._id} className="list-group-item d-flex justify-content-between align-items-start">
+                        <li key={proposal._id} className="list-group-item d-flex justify-content-between align-items-start border border-5 border-dark rounded-4">
+                            {/* Proposal details */}
                             <div>
                                 <p><strong>Client:</strong> {proposal.jobId.userId.fullName}</p>
                                 <p><strong>Job Title:</strong> {proposal.jobId.title}</p>
@@ -52,25 +81,37 @@ const FreelancerProposals = ({ userData, Back }) => {
                                 <p><strong>Client's Est. Time:</strong> {proposal.jobId.duration}</p>
                                 <p><strong>Status:</strong> {proposal.status}</p>
                             </div>
+                            {/* Action buttons */}
                             <div className="d-flex align-items-center">
                                 <button
                                     className="btn btn-primary m-2"
-                                    onClick={() => handleViewProposalDetails(proposal)} // Assuming you have a function handleViewProposalDetails
+                                    onClick={() => handleViewProposalDetails(proposal)}
                                 >
                                     View Proposal Details
                                 </button>
+                                { proposal.status === "withdrawn" ? null : (
+                                    <button
+                                    className="btn btn-danger m-2"
+                                    onClick={() => handleProposalWithdrawal(proposal)}
+                                    disabled={withdrawingProposal} // Disable button while withdrawing
+                                >
+                                    {withdrawingProposal ? "Withdrawing..." : "Withdraw Proposal"}
+                                </button>   
+                                )}
                             </div>
                         </li>
                     ))}
                 </ul>
-            ) : step === 2 && proposalData ? (
+            )}
+            {/* Render proposal details */}
+            {step === 2 && proposalData && (
                 <FreelancerProposalDetails
                     Back={() => setStep(1)}
                     proposalData={proposalData}
                 />
-            ) : null }
+            )}
         </div>
-    );    
+    );
 };
 
 export default FreelancerProposals;
