@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
-// import ClientDashboard from '../components/dashboard/ClientDashboard';
+import React, { useState, useEffect, useCallback } from 'react';
 import ClientDashboard from '../components/dashboard/ClientDashboard/ClientDashboard';
-// import FreelancerDashboard from '../components/dashboard/FreelancerDashboard';
 import FreelancerDashboard from '../components/dashboard/FreelancerDashboard/FreelancerDashboard';
 
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +9,8 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  
+  const fetchUserData = useCallback(() => {
     fetch('http://localhost:5000/api/user', {
       method: 'GET',
       credentials: 'include', // Include cookies in the request
@@ -31,17 +30,26 @@ const Dashboard = () => {
         console.error(error);
         setUser(null); // Set user to null to avoid rendering errors
       });
-  }, [navigate]);
+  }, [navigate, setUser]);
+  
+  
+  useEffect(() => {
+    fetchUserData();
+  }, [navigate, fetchUserData]);
+  
+  
 
   return (
     <div className='container'>
   {user && user.userType === 'client' ? (
     <ClientDashboard 
         userData={user}
+        fetchUserData={fetchUserData}
     />
   ) : user && user.userType === 'freelancer' ? (
     <FreelancerDashboard 
     userData={user}
+    fetchUserData={fetchUserData}
     />
   ) : null }
 </div>

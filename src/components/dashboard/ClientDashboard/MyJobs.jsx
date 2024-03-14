@@ -128,7 +128,7 @@ const MyJobs = ({ userData, comeBack }) => {
 
 
     return (
-        <div className="container-fluid bg-dark text-light p-2  mb-5 rounded-3">
+        <div className="container-fluid bg-dark text-light p-2  mb-5 rounded-4">
             {step === 1 ? (
                 <>
                     <h1 className="m-1">
@@ -142,7 +142,7 @@ const MyJobs = ({ userData, comeBack }) => {
                     <div style={{ maxHeight: '600px', overflowY: 'scroll' }}>
                         <ul className="list-group">
                             {jobs.map(job => (
-                                <li key={job._id} className="list-group-item d-flex justify-content-between align-items-start">
+                                <li key={job._id} className="list-group-item d-flex justify-content-between align-items-start m-2 p-3 rounded-4">
                                     <div>
                                         <h4 className="mb-1">{job.title}</h4>
                                         {/* <p className="mb-1">{job.description}</p> */}
@@ -166,22 +166,22 @@ const MyJobs = ({ userData, comeBack }) => {
                                                     &nbsp;&nbsp;Edit Job&nbsp;&nbsp;
                                                 </button>
                                                 {job.status === 'pending_completion_confirmation' || job.status === 'under_progression' ? null : (
-                                                <button
-                                                    className="btn btn-warning mb-2"
-                                                    onClick={() => handleCloseJob(job._id)}
-                                                >
-                                                    &nbsp;Close Job&nbsp;
-                                                </button>)}
+                                                    <button
+                                                        className="btn btn-warning mb-2"
+                                                        onClick={() => handleCloseJob(job._id)}
+                                                    >
+                                                        &nbsp;Close Job&nbsp;
+                                                    </button>)}
                                             </>
                                         )}
-                                                {job.status === 'pending_completion_confirmation' || job.status === 'under_progression' ? null : (
+                                        {job.status === 'pending_completion_confirmation' || job.status === 'under_progression' ? null : (
 
-                                        <button
-                                            className="btn btn-danger"
-                                            onClick={() => handleDeleteJob(job._id)} // Assuming you have a function handleDeleteJob
-                                        >
-                                            Delete Job
-                                        </button>)}
+                                            <button
+                                                className="btn btn-danger"
+                                                onClick={() => handleDeleteJob(job._id)} // Assuming you have a function handleDeleteJob
+                                            >
+                                                Delete Job
+                                            </button>)}
                                     </div>
                                 </li>
                             ))}

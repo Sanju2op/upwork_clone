@@ -8,6 +8,18 @@ const cors = require("cors");
 const nodemailer = require("nodemailer");
 // const passport = require("passport");
 // const LocalStrategy = require("passport-local").Strategy;
+const multer = require("multer");
+// const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Save uploaded files to the "uploads" directory
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Use the original filename
+  },
+});
+const upload = multer({ storage: storage });
 
 const app = express();
 const port = 5000;
@@ -21,6 +33,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use("/uploads", express.static(__dirname + "/uploads"));
 
 //database Connection
 mongoose
@@ -65,10 +79,94 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   country: String,
+  // Freelancer specific fields
+  skills: [String],
+  description: String,
+  // Client specific fields
+  companyName: String,
+  companyDescription: String,
+  // Profile photo path
+  profilePhoto: String,
 });
 
 const User = mongoose.model("User", userSchema); // mongodb automatically determines collection name
 // const User = mongoose.model('User', userSchema, 'my_custom_collection_name');
+
+//edit profile freelancer
+app.post(
+  "/api/update-profile-freelancer",
+  upload.single("profilePhoto"),
+  async (req, res) => {
+    const { fullName, email, country, skills, description, password } =
+      req.body;
+    const profilePhotoPath = req.file ? req.file.path : null;
+
+    // Update the user's profile data in the database
+    try {
+      const user = await User.findOne({ email, password }).exec();
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.fullName = fullName;
+      user.email = email;
+      user.country = country;
+      user.skills = skills;
+      user.description = description;
+      user.profilePhoto = profilePhotoPath; // Assuming you have a field for profile photo path in your User model
+
+      await user.save();
+      console.log("User profile updated successfully");
+
+      // Send a success response
+      res.json({ message: "Profile updated successfully" });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+// Edit Profile Client
+app.post(
+  "/api/update-profile-client",
+  upload.single("profilePhoto"),
+  async (req, res) => {
+    const {
+      fullName,
+      email,
+      country,
+      companyName,
+      companyDescription,
+      password,
+    } = req.body;
+    const profilePhotoPath = req.file ? req.file.path : null;
+
+    // Update the user's profile data in the database
+    try {
+      const user = await User.findOne({ email, password }).exec();
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.fullName = fullName;
+      user.email = email;
+      user.country = country;
+      user.companyName = companyName;
+      user.companyDescription = companyDescription;
+      user.profilePhoto = profilePhotoPath;
+
+      await user.save();
+      console.log("User profile updated successfully");
+
+      // Send a success response
+      res.json({ message: "Profile updated successfully" });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
 
 // Server side route to handle user sign-up data
 app.post("/api/signup", async (req, res) => {
@@ -328,7 +426,12 @@ const jobSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["open", "closed", "pending_completion_confirmation", "under_progression"], // Example status values
+    enum: [
+      "open",
+      "closed",
+      "pending_completion_confirmation",
+      "under_progression",
+    ], // Example status values
     default: "open",
   },
   createdAt: {
@@ -348,7 +451,6 @@ const jobSchema = new mongoose.Schema({
     default: 0, // Default value is 0
   },
 });
-
 
 const Job = mongoose.model("Job", jobSchema);
 
@@ -414,8 +516,6 @@ app.get("/api/jobs/open", async (req, res) => {
   }
 });
 
-
-
 // Get all jobs for find work page
 app.get("/api/jobs/all", async (req, res) => {
   try {
@@ -424,16 +524,15 @@ app.get("/api/jobs/all", async (req, res) => {
     //   select: "country",
     // });
     const jobs = await Job.find({ status: { $ne: "closed" } }).populate({
-        path: "userId",
-        select: "country",
-      });
+      path: "userId",
+      select: "country",
+    });
     res.status(200).json(jobs);
   } catch (error) {
     console.error("Error fetching jobs:", error);
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
-
 
 //update jobs
 app.put("/api/jobs/:id", async (req, res) => {
@@ -468,43 +567,44 @@ app.put("/api/jobs/:id", async (req, res) => {
 });
 
 // Endpoint for the freelancer to mark a job as pending completion confirmation
-app.put("/api/jobs/:id/:email/confirm-completion-freelancer", async (req, res) => {
-  const jobId = req.params.id;
-  
+app.put(
+  "/api/jobs/:id/:email/confirm-completion-freelancer",
+  async (req, res) => {
+    const jobId = req.params.id;
 
-  try {
-    const updatedJob = await Job.findByIdAndUpdate(
-      jobId,
-      {
-        status: "pending_completion_confirmation",
-        lastUpdated: Date.now(),
-      },
-      { new: true }
-    );
+    try {
+      const updatedJob = await Job.findByIdAndUpdate(
+        jobId,
+        {
+          status: "pending_completion_confirmation",
+          lastUpdated: Date.now(),
+        },
+        { new: true }
+      );
 
-    if (!updatedJob) {
-      return res.status(404).send("Job not found");
+      if (!updatedJob) {
+        return res.status(404).send("Job not found");
+      }
+
+      // Send an email to the client to check their work
+      const clientEmail = req.params.email;
+      const mailOptions = {
+        from: "sanjaylagaria79901@gmail.com",
+        to: clientEmail,
+        subject: "Job completion confirmation",
+        text: `Dear client, your freelancer has marked the job "${updatedJob.title}" as completed. Please check their work.`,
+      };
+
+      // Send the email
+      await transporter.sendMail(mailOptions);
+
+      res.json(updatedJob);
+    } catch (error) {
+      console.error("Error updating status of job:", error);
+      res.status(500).send("Internal Server Error");
     }
-
-    // Send an email to the client to check their work
-    const clientEmail = req.params.email;
-    const mailOptions = {
-      from: "sanjaylagaria79901@gmail.com",
-      to: clientEmail,
-      subject: "Job completion confirmation",
-      text: `Dear client, your freelancer has marked the job "${updatedJob.title}" as completed. Please check their work.`,
-    };
-
-    // Send the email
-    await transporter.sendMail(mailOptions);
-
-    res.json(updatedJob);
-  } catch (error) {
-    console.error("Error updating status of job:", error);
-    res.status(500).send("Internal Server Error");
   }
-});
-
+);
 
 // Endpoint for the client to mark a job as complete
 app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
@@ -560,7 +660,6 @@ app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
   }
 });
 
-
 // Job revision
 app.put("/api/jobs/:id/:email/confirm-completion-revised", async (req, res) => {
   const jobId = req.params.id;
@@ -599,10 +698,6 @@ app.put("/api/jobs/:id/:email/confirm-completion-revised", async (req, res) => {
   }
 });
 
-
-
-
-
 // Status:close for jobs
 app.put("/api/jobs/:jobId/close", async (req, res) => {
   try {
@@ -634,55 +729,58 @@ app.delete("/api/jobs/:jobId", async (req, res) => {
 });
 
 // Proposals processes
-const proposalSchema = new mongoose.Schema({
-  jobId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Job',
-    required: true,
+const proposalSchema = new mongoose.Schema(
+  {
+    jobId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Job",
+      required: true,
+    },
+    freelancerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    coverLetter: {
+      type: String,
+      required: true,
+    },
+    rate: {
+      type: Number,
+      required: true,
+    },
+    duration: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "rejected", "withdrawn", "job_completed"],
+      default: "pending",
+    },
+    clientNotes: {
+      type: String,
+    },
   },
-  freelancerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  clientId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  coverLetter: {
-    type: String,
-    required: true,
-  },
-  rate: {
-    type: Number,
-    required: true,
-  },
-  duration: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'accepted', 'rejected','withdrawn', 'job_completed'],
-    default: 'pending',
-  },
-  clientNotes: {
-    type: String,
-  },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-const Proposal = mongoose.model('Proposal', proposalSchema);
+const Proposal = mongoose.model("Proposal", proposalSchema);
 
 // Endpoint to submit a proposal @proposalsubmit
-app.post('/api/submit-proposal', async (req, res) => {
+app.post("/api/submit-proposal", async (req, res) => {
   const { jobId, freelancerId, coverLetter, rate, duration } = req.body;
 
   try {
     // Find the job to get the clientId
     const job = await Job.findById(jobId);
     if (!job) {
-      throw new Error('Job not found');
+      throw new Error("Job not found");
     }
 
     // Create a new proposal
@@ -702,32 +800,30 @@ app.post('/api/submit-proposal', async (req, res) => {
     await Job.findByIdAndUpdate(jobId, { $inc: { numberOfProposals: 1 } });
 
     // Respond with a success message
-    res.status(201).json({ message: 'Proposal submitted successfully' });
+    res.status(201).json({ message: "Proposal submitted successfully" });
   } catch (error) {
     // Handle errors
-    console.error('Error submitting proposal:', error.message);
-    res.status(500).json({ message: 'Failed to submit proposal' });
+    console.error("Error submitting proposal:", error.message);
+    res.status(500).json({ message: "Failed to submit proposal" });
   }
 });
 
-
 //proposals request about specific user for freelancer
-app.get('/api/proposals', async (req, res) => {
+app.get("/api/proposals", async (req, res) => {
   try {
     const { userId } = req.query;
-    const proposals = await Proposal.find({ freelancerId: userId })
-      .populate({
-        path: 'jobId',
-        populate: {
-          path: 'userId',
-          select: 'fullName email country',
-        },
-      });
+    const proposals = await Proposal.find({ freelancerId: userId }).populate({
+      path: "jobId",
+      populate: {
+        path: "userId",
+        select: "fullName email country",
+      },
+    });
 
     res.json(proposals);
   } catch (error) {
-    console.error('Error fetching proposals:', error.message);
-    res.status(500).json({ message: 'Failed to fetch proposals' });
+    console.error("Error fetching proposals:", error.message);
+    res.status(500).json({ message: "Failed to fetch proposals" });
   }
 });
 
@@ -752,30 +848,29 @@ app.get('/api/proposals', async (req, res) => {
 // });
 
 // for client to fetch proposals about specific job
-app.get('/api/proposals/:jobId', async (req, res) => {
+app.get("/api/proposals/:jobId", async (req, res) => {
   try {
     const { jobId } = req.params;
     const proposals = await Proposal.find({ jobId })
       .populate({
-        path: 'jobId',
-        select: 'title description budget duration createdAt status',
+        path: "jobId",
+        select: "title description budget duration createdAt status",
         populate: {
-          path: 'userId',
-          select: 'fullName email country',
+          path: "userId",
+          select: "fullName email country",
         },
       })
       .populate({
-        path: 'freelancerId',
-        select: 'fullName email country',
+        path: "freelancerId",
+        select: "fullName email country",
       });
 
     res.json(proposals);
   } catch (error) {
-    console.error('Error fetching proposals:', error.message);
-    res.status(500).json({ message: 'Failed to fetch proposals' });
+    console.error("Error fetching proposals:", error.message);
+    res.status(500).json({ message: "Failed to fetch proposals" });
   }
 });
-
 
 // Endpoint for accepting a proposal
 app.put("/api/proposals/:id/accept", async (req, res) => {
@@ -786,7 +881,9 @@ app.put("/api/proposals/:id/accept", async (req, res) => {
       proposalId,
       { status: "accepted" },
       { new: true }
-    ).populate('freelancerId').populate('jobId'); // Populate the freelancerId and jobId fields
+    )
+      .populate("freelancerId")
+      .populate("jobId"); // Populate the freelancerId and jobId fields
 
     if (!updatedProposal) {
       return res.status(404).send("Proposal not found");
@@ -807,7 +904,9 @@ app.put("/api/proposals/:id/accept", async (req, res) => {
         res.status(500).json({ error: "Failed to send email notification." });
       } else {
         console.log("Email sent:", info.response);
-        res.status(200).json({ message: "Email notification sent successfully." });
+        res
+          .status(200)
+          .json({ message: "Email notification sent successfully." });
       }
     });
   } catch (error) {
@@ -816,91 +915,104 @@ app.put("/api/proposals/:id/accept", async (req, res) => {
   }
 });
 
-
 // contracts Schema
 const contractSchema = new mongoose.Schema({
   jobId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Job',
-      required: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Job",
+    required: true,
   },
   jobTitle: {
-      type: String,
-      required: true
+    type: String,
+    required: true,
   },
   jobDescription: {
-      type: String,
-      required: true
+    type: String,
+    required: true,
   },
   clientName: {
-      type: String,
-      required: true
+    type: String,
+    required: true,
   },
   freelancerName: {
-      type: String,
-      required: true
+    type: String,
+    required: true,
   },
   agreedPrice: {
-      type: Number,
-      required: true
+    type: Number,
+    required: true,
   },
   // Add more fields as needed
 });
 
-const Contract = mongoose.model('Contract', contractSchema);
+const Contract = mongoose.model("Contract", contractSchema);
 
 // Endpoint for creating a contract
 app.post("/api/contracts", async (req, res) => {
-  const { jobId, jobTitle, jobDescription, clientName, freelancerName, agreedPrice, clientEmail, freelancerEmail } = req.body;
+  const {
+    jobId,
+    jobTitle,
+    jobDescription,
+    clientName,
+    freelancerName,
+    agreedPrice,
+    clientEmail,
+    freelancerEmail,
+  } = req.body;
 
   try {
-      // Create a new contract document
-      const contract = new Contract({
-          jobId,
-          jobTitle,
-          jobDescription,
-          clientName,
-          freelancerName,
-          agreedPrice,
-          // Add more fields as needed
-      });
+    // Create a new contract document
+    const contract = new Contract({
+      jobId,
+      jobTitle,
+      jobDescription,
+      clientName,
+      freelancerName,
+      agreedPrice,
+      // Add more fields as needed
+    });
 
-      // Save the contract to the database
-      await contract.save();
+    // Save the contract to the database
+    await contract.save();
 
-      // Send contract details to both client and freelancer
-      const clientMailOptions = {
-          from: "sanjaylagaria79901@gmail.com",
-          to: clientEmail,
-          subject: "Contract Details",
-          text: `Dear ${clientName},\n\nCongratulations! we are glad that you found freelancder ${freelancerName} for the job "${jobTitle}".\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nFreelancer Name: ${freelancerName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
-      };
-      transporter.sendMail(clientMailOptions, (clientError, clientInfo) => {
-          if (clientError) {
-              console.error("Error sending client email:", clientError);
-          } else {
-              console.log("Client email sent:", clientInfo.response);
-          }
-      });
+    // Send contract details to both client and freelancer
+    const clientMailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: clientEmail,
+      subject: "Contract Details",
+      text: `Dear ${clientName},\n\nCongratulations! we are glad that you found freelancder ${freelancerName} for the job "${jobTitle}".\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nFreelancer Name: ${freelancerName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
+    };
+    transporter.sendMail(clientMailOptions, (clientError, clientInfo) => {
+      if (clientError) {
+        console.error("Error sending client email:", clientError);
+      } else {
+        console.log("Client email sent:", clientInfo.response);
+      }
+    });
 
-      const freelancerMailOptions = {
-          from: "sanjaylagaria79901@gmail.com",
-          to: freelancerEmail,
-          subject: "Contract Details",
-          text: `Dear ${freelancerName},\n\nCongratulations! Your proposal for the job "${jobTitle}" has been accepted by the client "${clientName}" .\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nClient Name: ${clientName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
-      };
-      transporter.sendMail(freelancerMailOptions, (freelancerError, freelancerInfo) => {
-          if (freelancerError) {
-              console.error("Error sending freelancer email:", freelancerError);
-          } else {
-              console.log("Freelancer email sent:", freelancerInfo.response);
-          }
-      });
+    const freelancerMailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: freelancerEmail,
+      subject: "Contract Details",
+      text: `Dear ${freelancerName},\n\nCongratulations! Your proposal for the job "${jobTitle}" has been accepted by the client "${clientName}" .\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nClient Name: ${clientName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
+    };
+    transporter.sendMail(
+      freelancerMailOptions,
+      (freelancerError, freelancerInfo) => {
+        if (freelancerError) {
+          console.error("Error sending freelancer email:", freelancerError);
+        } else {
+          console.log("Freelancer email sent:", freelancerInfo.response);
+        }
+      }
+    );
 
-      res.status(201).json({ message: "Contract created successfully", contract });
+    res
+      .status(201)
+      .json({ message: "Contract created successfully", contract });
   } catch (error) {
-      console.error("Error creating contract:", error);
-      res.status(500).json({ error: "Failed to create contract" });
+    console.error("Error creating contract:", error);
+    res.status(500).json({ error: "Failed to create contract" });
   }
 });
 
@@ -915,8 +1027,9 @@ app.put("/api/proposals/:id/withdraw", async (req, res) => {
         status: "withdrawn",
       },
       { new: true }
-    ).populate('freelancerId')
-    .populate('clientId');
+    )
+      .populate("freelancerId")
+      .populate("clientId");
 
     if (!updatedProposal) {
       return res.status(404).send("Proposal not found");
@@ -936,7 +1049,9 @@ app.put("/api/proposals/:id/withdraw", async (req, res) => {
         res.status(500).json({ error: "Failed to send email notification." });
       } else {
         console.log("Email sent:", info.response);
-        res.status(200).json({ message: "Email notification sent successfully." });
+        res
+          .status(200)
+          .json({ message: "Email notification sent successfully." });
       }
     });
   } catch (error) {
@@ -945,7 +1060,49 @@ app.put("/api/proposals/:id/withdraw", async (req, res) => {
   }
 });
 
+// api endpoint to fetch all freelancers details
+app.get("/api/freelancers", async (req, res) => {
+  try {
+    // Select the fields you want to include
+    const freelancers = await User.find({ userType: "freelancer" }).select(
+      "-password"
+    );
 
+    res.json({ freelancers });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// handle freelancer contact
+app.post("/api/contact-freelancer", async (req, res) => {
+  const {
+    freelancerFullName,
+    freelancerEmail,
+    ClientEmail,
+    ClientFullName,
+    ClientMessage,
+  } = req.body;
+
+  const mailOptions = {
+    from: "sanjaylagaria79901@gmail.com",
+    to: freelancerEmail, // Use the freelancer's email here
+    subject: "Request to Contact From Client",
+    text: `Hello ${freelancerFullName},\n\nYou have received a message from a ${ClientFullName}:\n\n${ClientMessage}\n\n Client Contact Details :\n\nClient Email : ${ClientEmail}`,
+  };
+
+  try {
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    // Respond with success message
+    res.status(200).json({ message: "Message sent successfully." });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ error: "Failed to send email." });
+  }
+});
 
 app.listen(port, () => {
   console.log(`\n Server Running at http://localhost:${port}`);

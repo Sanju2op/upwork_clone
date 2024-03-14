@@ -1,10 +1,9 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'jquery/dist/jquery.min.js';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import "jquery/dist/jquery.min.js";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 import NaviBar from "./components/NaviBar";
 import Home from "./pages/Home";
@@ -13,6 +12,7 @@ import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import FreelanceJobs from "./pages/FreelanceJobs";
+import TalentMarket from "./pages/TalentMarket";
 
 const App = () => {
   return (
@@ -25,6 +25,7 @@ const App = () => {
           <Route path="/login" element={<LogIn />} />
           <Route path="/dashboard" element={<DashboardWithRefresh />} />
           <Route path="/freelance-jobs" element={<FreelanceJobs />} />
+          <Route path="/talent-marketplace" element={<TalentMarket />} />
         </Routes>
       </div>
     </Router>

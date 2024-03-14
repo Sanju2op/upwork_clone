@@ -152,7 +152,7 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
                                 )}
                                 <h4>Proposal:</h4>
                                 <p>Freelancer: {selectedProposal.freelancerId.fullName}</p>
-                                <p>Skills: Dummy Skills for now</p>
+                                <p>Skills: {selectedProposal.freelancerId.skills}</p>
                                 <hr />
                                 <p>CoverLetter: </p>
                                 <pre style={{ maxHeight: '200px', overflowY: 'auto', width: "100%", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}>

@@ -3,8 +3,8 @@ import { Card, Button, Row, Col } from "react-bootstrap";
 import ProposalDetails from "./ProposalDetails";
 
 const ClientJobProposals = ({ userData, comeBack }) => {
-    const [jobs, setJobs] = useState([]); 
-    const [jobData, setJobData] = useState(null); 
+    const [jobs, setJobs] = useState([]);
+    const [jobData, setJobData] = useState(null);
     const [step, setStep] = useState(1);
 
     // Fetch jobs for the current user
@@ -40,43 +40,43 @@ const ClientJobProposals = ({ userData, comeBack }) => {
         setStep(2);
     }
 
-    
+
     return (
         <div className="container mt-4 p-3 bg-dark text-light rounded-4">
-           {step === 1 ? (
-            <>
-             <h1>
-                <button
-                    className="btn btn-success m-1 mb-2 p-2"
-                    onClick={comeBack}
-                >
-                    <i className="bi bi-arrow-left"></i> Go Back
-                </button>
-                Your Jobs Proposals
-            </h1>
-            <Row>
-                {jobs.map((job) => (
-                    <Col key={job._id} md={4} className="mb-4">
-                        <Card className="h-100 d-flex flex-column">
-                            <Card.Body className="w-100 d-flex flex-column">
-                                <Card.Title><span className="px-1 bg-danger text-light rounded">{job.numberOfProposals}</span> | {job.title}</Card.Title>
-                                <Card.Text className="flex-grow-1">{truncateDescription(job.description, 100)}</Card.Text>
-                                <div className="mt-auto text-end">
-                                    <Button variant="success" onClick={() => handleViewProposal(job)}>View Proposals</Button>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-            </>
-           ): step === 2 && jobData ? (
-            <ProposalDetails 
-            jobData={jobData}
-            userData={userData}
-            Back={()=> setStep(1)}
-            />
-           ):null}
+            {step === 1 ? (
+                <>
+                    <h1>
+                        <button
+                            className="btn btn-success m-1 mb-2 p-2"
+                            onClick={comeBack}
+                        >
+                            <i className="bi bi-arrow-left"></i> Go Back
+                        </button>
+                        Your Jobs Proposals
+                    </h1>
+                    <Row>
+                        {jobs.map((job) => (
+                            <Col key={job._id} md={4} className="mb-4">
+                                <Card className="h-100 d-flex flex-column">
+                                    <Card.Body className="w-100 d-flex flex-column">
+                                        <Card.Title><span className="px-2 bg-danger text-light rounded-circle">{job.numberOfProposals}</span> | {job.title}</Card.Title>
+                                        <Card.Text className="flex-grow-1">{truncateDescription(job.description, 100)}</Card.Text>
+                                        <div className="mt-auto text-end">
+                                            <Button variant="success" onClick={() => handleViewProposal(job)}><i className="bi bi-eye fs-5"> </i> View Proposals</Button>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+                </>
+            ) : step === 2 && jobData ? (
+                <ProposalDetails
+                    jobData={jobData}
+                    userData={userData}
+                    Back={() => setStep(1)}
+                />
+            ) : null}
         </div>
     );
 };

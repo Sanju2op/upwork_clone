@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { NavDropdown } from 'react-bootstrap';
+// import { NavDropdown } from 'react-bootstrap';
 import './Navbar.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,7 +30,7 @@ function NaviBar() {
       })
       .catch(error => {
         // Handle errors, e.g., redirect to login page
-       // navigate('/login');
+        // navigate('/login');
         console.error(error);
         setUser(null); // Set user to null to avoid rendering errors
       });
@@ -87,7 +87,7 @@ function NaviBar() {
         <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`} id="navbarNavDropdown">
           <ul className="navbar-nav">
             <li className="nav-item">
-              <NavDropdown title="Find Talent" id="find-talent-dropdown">
+              {/* <NavDropdown title="Find Talent" id="find-talent-dropdown">
                 <NavDropdown.Item href="/talent-marketplace">
                   <span className='sublink-text1'>Post a job and hire a pro</span> <br />
                   <span className='sublink-text2'>Talent marketplace</span><br />
@@ -96,7 +96,10 @@ function NaviBar() {
                   <span className='sublink-text1'>Browse and buy projects</span> <br />
                   <span className='sublink-text2'>Project catalog</span><br />
                 </NavDropdown.Item>
-              </NavDropdown>
+              </NavDropdown> */}
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/talent-marketplace">Talent Marketplace</a>
             </li>
             <li className="nav-item">
               <a className="nav-link" href="/freelance-jobs">Find work</a>
@@ -105,9 +108,9 @@ function NaviBar() {
               <a className="nav-link" href='/dashboard'>Dasboard</a>
             </li>
             <li className="nav-item">
-              <a  id="signup-btn" className="nav-link mb-0 mx-2 text-light rounded-5" href='/dashboard'><i className="bi bi-person-circle px-2"></i>{user.userType}</a>
+              <a id="signup-btn" className="nav-link mb-0 mx-2 text-light rounded-5" href='/dashboard'><i className="bi bi-person-circle px-2"></i>{user.userType}</a>
             </li>
-            
+
             <li className="nav-item">
               <button id="signup-btn" className="nav-link px-3 rounded-5" onClick={handleLogout}>Logout</button>
             </li>
@@ -138,7 +141,7 @@ function NaviBar() {
         <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`} id="navbarNavDropdown">
           <ul className="navbar-nav">
             <li className="nav-item">
-              <NavDropdown title="Find Talent" id="find-talent-dropdown">
+              {/* <NavDropdown title="Find Talent" id="find-talent-dropdown">
                 <NavDropdown.Item href="/talent-marketplace">
                   <span className='sublink-text1'>Post a job and hire a pro</span> <br />
                   <span className='sublink-text2'>Talent marketplace</span><br />
@@ -147,7 +150,10 @@ function NaviBar() {
                   <span className='sublink-text1'>Browse and buy projects</span> <br />
                   <span className='sublink-text2'>Project catalog</span><br />
                 </NavDropdown.Item>
-              </NavDropdown>
+              </NavDropdown> */}
+              <li className="nav-item">
+                <a className="nav-link" href="/talent-marketplace">Talent Marketplace</a>
+              </li>
             </li>
             <li className="nav-item">
               <a className="nav-link" href="/freelance-jobs">Find work</a>
@@ -163,7 +169,7 @@ function NaviBar() {
       </nav>
     );
   }
-  
+
 }
 
 export default NaviBar;
