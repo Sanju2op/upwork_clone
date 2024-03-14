@@ -155,13 +155,20 @@ const FreelanceJobs = () => {
           <div className={selectedJob ? "col-6" : "col-12"} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
             <h3 className="pb-2 mb-4">Jobs you might like </h3>
             <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search jobs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search jobs by title, description, or skills"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="input-group-append">
+                  <span className="input-group-text">
+                    <i className="bi bi-search"></i>
+                  </span>
+                </div>
+              </div>
             </div>
             {jobs.map((job, index) => (
               <div key={job.id || index} className="card mb-3">
