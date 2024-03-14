@@ -30,7 +30,7 @@ const MyJobs = ({ userData, comeBack }) => {
 
     const handleEditJob = (jobId) => {
         const jobToEdit = jobs.find(job => job._id === jobId);
-        if (jobToEdit.numberOfProposals > 0) {
+        if (jobToEdit.numberOfProposals > 0 || jobToEdit.status === "under_progression") {
             if (window.confirm("changes may affect the ongoing work with the freelancers.")) {
                 if (jobToEdit) {
                     setEditingJob(jobToEdit);

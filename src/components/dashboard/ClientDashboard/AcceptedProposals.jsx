@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import CountryName from "../../CountryName";
+
 const AcceptedProposals = ({ userData, Back }) => {
     const [jobs, setJobs] = useState([]);
     const [proposals, setProposals] = useState([]);
     const [confirmingJob, setConfirmingJob] = useState(false);
-
+    const [filter, setFilter] = useState(null); 
 
     // Fetch jobs for the current user
     const fetchJobs = useCallback(async () => {
@@ -28,59 +29,58 @@ const AcceptedProposals = ({ userData, Back }) => {
     }, [userData, fetchJobs]);
 
     // Fetch proposals for each job
-    useEffect(() => {
-        const fetchProposals = async () => {
-            try {
-                const proposalsData = [];
-                for (const job of jobs) {
-                    const response = await fetch(`http://localhost:5000/api/proposals/${job._id}`, {
-                        method: 'GET',
-                        credentials: 'include',
-                    });
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch proposals');
-                    }
-                    const data = await response.json();
-                    proposalsData.push(...data);
+    const fetchProposals = useCallback(async () => {
+        try {
+            const proposalsData = [];
+            for (const job of jobs) {
+                const response = await fetch(`http://localhost:5000/api/proposals/${job._id}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch proposals');
                 }
-                setProposals(proposalsData.filter(proposal => proposal.status === 'accepted'));
-            } catch (error) {
-                console.error(error);
+                const data = await response.json();
+                proposalsData.push(...data);
             }
-        };
-
+            setProposals(proposalsData.filter(proposal => proposal.status === 'accepted'));
+        } catch (error) {
+            console.error(error);
+        }
+    }, [jobs]); // Include jobs in the dependency array
+    
+    useEffect(() => {
         if (jobs.length > 0) {
             fetchProposals();
         }
-    }, [jobs]);
-
+    }, [jobs, fetchProposals]);
+    
     const ConfirmJobCompletion = async (proposalData) => {
         console.log("Job Id:", proposalData.jobId._id);
         setConfirmingJob(true);
         
         try {
-          const response = await fetch(`http://localhost:5000/api/jobs/${proposalData._id}/${proposalData.freelancerId.email}/confirm-completion-client`, {
-            method: 'PUT',
-            credentials: 'include',
-          });
-      
-          if (!response.ok) {
-            throw new Error('Failed to confirm job completion');
-          }
-      
-          // Update the job status locally or fetch updated job data
-          alert('Job completion confirmed');
+            const response = await fetch(`http://localhost:5000/api/jobs/${proposalData._id}/${proposalData.freelancerId.email}/confirm-completion-client`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+        
+            if (!response.ok) {
+                throw new Error('Failed to confirm job completion');
+            }
+        
+            // Refetch proposals to update the job status
+            await fetchProposals();
+            alert('Job completion confirmed');
         } catch (error) {
-          console.error('Error confirming job completion:', error.message);
-          // Notify the user of any errors
-          alert('Failed to confirm job completion');
+            console.error('Error confirming job completion:', error.message);
+            // Notify the user of any errors
+            alert('Failed to confirm job completion');
         } finally {
             setConfirmingJob(false);
         }
-      };
-      
-
-
+    };
+    
     const ReviseJobCompletion = async (proposalData) => {
         console.log("Job Id:", proposalData.jobId._id);
         const jobId =  proposalData.jobId._id;
@@ -88,34 +88,44 @@ const AcceptedProposals = ({ userData, Back }) => {
         setConfirmingJob(true);
         
         try {
-          const response = await fetch(`http://localhost:5000/api/jobs/${jobId}/${proposalData.freelancerId.email}/confirm-completion-revised`, {
-            method: 'PUT',
-            credentials: 'include',
-          });
-      
-          if (!response.ok) {
-            throw new Error('Failed to confirm job Revision');
-          }
-      
-          // Update the job status locally or fetch updated job data
-          alert('Job Revision confirmed');
+            const response = await fetch(`http://localhost:5000/api/jobs/${jobId}/${proposalData.freelancerId.email}/confirm-completion-revised`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+        
+            if (!response.ok) {
+                throw new Error('Failed to confirm job Revision');
+            }
+        
+            // Refetch proposals to update the job status
+            await fetchProposals();
+            alert('Job Revision confirmed');
         } catch (error) {
-          console.error('Error confirming job Revision:', error.message);
-          // Notify the user of any errors
-          alert('Failed to confirm job Revision');
+            console.error('Error confirming job Revision:', error.message);
+            // Notify the user of any errors
+            alert('Failed to confirm job Revision');
         } finally {
             setConfirmingJob(false);
         }
-    }
+    };
 
+    const handleFilter = (status) => {
+        setFilter(status);
+    };
+    const filteredProposals = filter ? proposals.filter(proposal => proposal.jobId.status === filter) : proposals;
     return (
         <div className="container bg-dark p-3 text-light rounded-4">
             <h3>
                 <button className="btn btn-success mx-3" onClick={Back}><i className="bi bi-backspace text-white"></i></button>
                 Accepted Proposals/Hired Freelancers for Jobs
             </h3>
+            <div className="btn-group mb-3">
+                <button className="btn btn-primary" onClick={() => setFilter(null)}>All</button>
+                <button className="btn btn-primary" onClick={() => handleFilter('under_progression')}>Under Progression</button>
+                <button className="btn btn-primary" onClick={() => handleFilter('pending_completion_confirmation')}>Pending Completion Confirmation</button>
+            </div>
             <ul className="list-group">
-                {proposals.map(proposal => (
+                {filteredProposals.map(proposal => (
                     <li key={proposal._id} className="list-group-item border border-5 p-3 m-3 rounded-4">
                         <div className="row">
                             <div className="col-12">

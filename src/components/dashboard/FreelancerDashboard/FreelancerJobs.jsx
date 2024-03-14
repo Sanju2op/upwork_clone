@@ -4,6 +4,8 @@ import CountryName from "../../CountryName";
 const FreelancerJobs = ({ userData, Back }) => {
     const [proposals, setProposals] = useState([]);
     const [acceptingProposal, setAcceptingProposal] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [filter, setFilter] = useState(null);
 
     useEffect(() => {
         if (!userData || !userData._id) {
@@ -24,8 +26,10 @@ const FreelancerJobs = ({ userData, Back }) => {
         };
 
         fetchProposals();
-    }, [userData]);
+    }, [userData,  refreshKey]);
+    // const acceptedProposals = proposals.filter(proposal => proposal.status === "accepted");
     const acceptedProposals = proposals.filter(proposal => proposal.status === "accepted");
+    const filteredProposals = filter ? acceptedProposals.filter(proposal => proposal.jobId.status === filter) : acceptedProposals;
 
     const ConfirmJobCompletion = async (proposalData) => {
         console.log("Job Id:", proposalData.jobId._id);
@@ -42,7 +46,17 @@ const FreelancerJobs = ({ userData, Back }) => {
           }
       
           // Update the job status locally or fetch updated job data
+          const updatedProposal = await response.json();
+          setProposals(prevProposals => {
+              return prevProposals.map(proposal => {
+                  if (proposal._id === updatedProposal._id) {
+                      return updatedProposal;
+                  }
+                  return proposal;
+              });
+          });
           alert('Job completion confirmed');
+          setRefreshKey(prevKey => prevKey + 1);
         } catch (error) {
           console.error('Error confirming job completion:', error.message);
           // Notify the user of any errors
@@ -52,14 +66,22 @@ const FreelancerJobs = ({ userData, Back }) => {
         }
       };
       
+      const handleFilter = (status) => {
+        setFilter(status);
+    };
 
     return (
         <div className="container bg-dark p-3 text-light rounded-4">
             <h1>
             <button className="btn btn-success  mx-3" onClick={Back}><i className="bi bi-backspace text-white"></i></button>
                 Your Jobs</h1>
+                <div className="btn-group mb-3">
+                <button className="btn btn-primary" onClick={() => handleFilter('under_progression')}>Under Progression</button>
+                <button className="btn btn-primary" onClick={() => handleFilter('pending_completion_confirmation')}>Pending Completion Confirmation</button>
+                <button className="btn btn-primary" onClick={() => setFilter(null)}>Clear Filters</button>
+            </div>
             <ul className="list-group">
-                {acceptedProposals.map(proposal => (
+                {filteredProposals.map(proposal => (
                     <li key={proposal._id} className="list-group-item border border-5 p-3 m-3 rounded-4">
                         <div className="row">
                             <div className="col-12">

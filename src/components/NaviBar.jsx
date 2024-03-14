@@ -105,7 +105,7 @@ function NaviBar() {
               <a className="nav-link" href='/dashboard'>Dasboard</a>
             </li>
             <li className="nav-item">
-              <p  id="signup-btn" className="nav-link mb-0 mx-2 text-light rounded-5" href={null}><i className="bi bi-person-circle px-2"></i>{user.userType}</p>
+              <a  id="signup-btn" className="nav-link mb-0 mx-2 text-light rounded-5" href='/dashboard'><i className="bi bi-person-circle px-2"></i>{user.userType}</a>
             </li>
             
             <li className="nav-item">

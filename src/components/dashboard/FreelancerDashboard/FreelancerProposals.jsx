@@ -6,6 +6,7 @@ const FreelancerProposals = ({ userData, Back }) => {
     const [step, setStep] = useState(1);
     const [proposalData, setProposalData] = useState('');
     const [withdrawingProposal, setWithdrawingProposal] = useState(false); // State to track withdrawal process
+    const [filterStatus, setFilterStatus] = useState(''); // State to track selected status for filtering
 
     useEffect(() => {
         if (!userData || !userData._id) {
@@ -69,39 +70,50 @@ const FreelancerProposals = ({ userData, Back }) => {
             </h1>
             ) : null }
             {step === 1 && (
-                <ul className="list-group">
-                    {proposals.filter(proposal => proposal.status !== "accepted").map(proposal => (
-                        <li key={proposal._id} className="list-group-item d-flex justify-content-between align-items-start border border-5 border-dark rounded-4">
-                            {/* Proposal details */}
-                            <div>
-                                <p><strong>Client:</strong> {proposal.jobId.userId.fullName}</p>
-                                <p><strong>Job Title:</strong> {proposal.jobId.title}</p>
-                                <p><strong>Date Submitted:</strong> {new Date(proposal.createdAt).toLocaleDateString()} At: {new Date(proposal.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                <p><strong>Your Bid:</strong> ${proposal.rate}</p>
-                                <p><strong>Client's Est. Time:</strong> {proposal.jobId.duration}</p>
-                                <p><strong>Status:</strong> {proposal.status}</p>
-                            </div>
-                            {/* Action buttons */}
-                            <div className="d-flex align-items-center">
-                                <button
-                                    className="btn btn-primary m-2"
-                                    onClick={() => handleViewProposalDetails(proposal)}
-                                >
-                                    View Proposal Details
-                                </button>
-                                { proposal.status === "withdrawn" ? null : (
-                                    <button
-                                    className="btn btn-danger m-2"
-                                    onClick={() => handleProposalWithdrawal(proposal)}
-                                    disabled={withdrawingProposal} // Disable button while withdrawing
-                                >
-                                    {withdrawingProposal ? "Withdrawing..." : "Withdraw Proposal"}
-                                </button>   
-                                )}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <>
+                    <div className="mb-3">
+                        <button className="btn btn-primary me-2" onClick={() => setFilterStatus('')}>All</button>
+                        <button className="btn btn-primary me-2" onClick={() => setFilterStatus('pending')}>Pending</button>
+                        <button className="btn btn-primary me-2" onClick={() => setFilterStatus('accepted')}>Accepted</button>
+                        <button className="btn btn-primary me-2" onClick={() => setFilterStatus('job_completed')}>Completed</button>
+                        <button className="btn btn-primary me-2" onClick={() => setFilterStatus('withdrawn')}>Withdrawn</button>
+                    </div>
+                    <ul className="list-group">
+                        {proposals
+                            .filter(proposal => !filterStatus || proposal.status === filterStatus)
+                            .map(proposal => (
+                                <li key={proposal._id} className="list-group-item d-flex justify-content-between align-items-start border border-5 border-dark rounded-4">
+                                    {/* Proposal details */}
+                                    <div>
+                                        <p><strong>Client:</strong> {proposal.jobId ? proposal.jobId.userId.fullName : "Job deleted by client"}</p>
+                                        <p><strong>Job Title:</strong> {proposal.jobId ? proposal.jobId.title : "Job deleted by client"}</p>
+                                        <p><strong>Date Submitted:</strong> {new Date(proposal.createdAt).toLocaleDateString()} At: {new Date(proposal.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                        <p><strong>Your Bid:</strong> ${proposal.rate}</p>
+                                        <p><strong>Client's Est. Time:</strong> {proposal.jobId ? proposal.jobId.duration : "Job deleted by client"}</p>
+                                        <p><strong>Status:</strong> {proposal.status}</p>
+                                    </div>
+                                    {/* Action buttons */}
+                                    <div className="d-flex align-items-center">
+                                        <button
+                                            className="btn btn-primary m-2"
+                                            onClick={() => handleViewProposalDetails(proposal)}
+                                        >
+                                            View Proposal Details
+                                        </button>
+                                        { proposal.status === "job_completed" || proposal.status === "withdrawn" || proposal.status === "accepted" ? null : (
+                                            <button
+                                                className="btn btn-danger m-2"
+                                                onClick={() => handleProposalWithdrawal(proposal)}
+                                                disabled={withdrawingProposal} // Disable button while withdrawing
+                                            >
+                                                {withdrawingProposal ? "Withdrawing..." : "Withdraw Proposal"}
+                                            </button>   
+                                        )}
+                                    </div>
+                                </li>
+                            ))}
+                    </ul>
+                </>
             )}
             {/* Render proposal details */}
             {step === 2 && proposalData && (
