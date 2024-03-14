@@ -102,7 +102,7 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
 
     return (
         <div>
-            {showPaymentGateway && <PaymentGateway />}
+            {showPaymentGateway && <PaymentGateway paymentPrice={selectedProposal.rate} />}
       {isProcessing ? (
         <Spinner animation="border" role="status">
           <span className="visually-hidden">Loading...</span>

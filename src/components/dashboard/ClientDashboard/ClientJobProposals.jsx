@@ -58,8 +58,8 @@ const ClientJobProposals = ({ userData, comeBack }) => {
                 {jobs.map((job) => (
                     <Col key={job._id} md={4} className="mb-4">
                         <Card className="h-100 d-flex flex-column">
-                            <Card.Body className="d-flex flex-column">
-                                <Card.Title>{job.title}</Card.Title>
+                            <Card.Body className="w-100 d-flex flex-column">
+                                <Card.Title><span className="px-1 bg-danger text-light rounded">{job.numberOfProposals}</span> | {job.title}</Card.Title>
                                 <Card.Text className="flex-grow-1">{truncateDescription(job.description, 100)}</Card.Text>
                                 <div className="mt-auto text-end">
                                     <Button variant="success" onClick={() => handleViewProposal(job)}>View Proposals</Button>

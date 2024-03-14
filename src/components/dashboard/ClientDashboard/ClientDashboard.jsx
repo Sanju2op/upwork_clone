@@ -4,6 +4,7 @@ import MyJobs from "./MyJobs";
 // import JobEditingForm from "./JobEditingForm";
 import CountryName from "../../CountryName";
 import ClientJobProposals from "./ClientJobProposals";
+import AcceptedProposals from "./AcceptedProposals";
 
 const ClientDashboard = ({ userData }) => {
   //const [jobs, setJobs] = useState([]);
@@ -51,25 +52,28 @@ const ClientDashboard = ({ userData }) => {
       {step === 1 ? (
         <>
 
-          <div className="row mt-5 pt-5">
-            <div className="col-lg-6">
-              <div className="list-group list-group-dashboard">
-                <button type="button" className="list-group-item list-group-item-action active" onClick={() => setStep(1)}>
+          <div className="row mt-2 pt-2">
+            <div className="col-6">
+              <div className="list-group list-group-dashboard w-100" >
+                <button style={{ width: '105%' }} type="button" className="list-group-item list-group-item-action active" onClick={() => setStep(1)}>
                   Profile
                 </button>
-                <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(2)}>
+                <button style={{ width: '105%' }} type="button" className="list-group-item list-group-item-action" onClick={() => setStep(2)}>
                   Post a Job
                 </button>
-                <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(3)}>
+                <button style={{ width: '105%' }} type="button" className="list-group-item list-group-item-action" onClick={() => setStep(3)}>
                   My Jobs
                 </button>
-                <button type="button" className="list-group-item list-group-item-action" onClick={() => setStep(4)}>
+                <button style={{ width: '105%' }} type="button" className="list-group-item list-group-item-action" onClick={() => setStep(4)}>
                   Job Proposals
+                </button>
+                <button style={{ width: '105%' }} type="button" className="list-group-item list-group-item-action" onClick={() => setStep(5)}>
+                  Accepted Proposals/ Hired Freelancers
                 </button>
               </div>
             </div>
 
-            <div className="col-lg-6 mt-5">
+            <div className="col-6 mt-5">
               <h1>Welcome, {userData.fullName}</h1>
               <p>Email: {userData.email}</p>
               <p>User: {userData.userType}</p>
@@ -96,8 +100,17 @@ const ClientDashboard = ({ userData }) => {
         userData={userData}
         comeBack={() => setStep(1)}
         />
-      ) : null}
+        ) : step === 5 ? (
+          <AcceptedProposals
+          userData={userData}
+          Back={() => setStep(1)}
+          />
+          ) : null}
     </div>
+  );
+};
+
+export default ClientDashboard;
 
     // <div className="container-fluid">
     //     {step === 1 ? (
@@ -128,8 +141,3 @@ const ClientDashboard = ({ userData }) => {
     //         />
     //     ) : null}
     // </div>
-
-  );
-};
-
-export default ClientDashboard;

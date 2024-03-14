@@ -1,65 +1,72 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import CountryName from "../../CountryName";
-
-const FreelancerJobs = ({ userData, Back }) => {
+const AcceptedProposals = ({ userData, Back }) => {
+    const [jobs, setJobs] = useState([]);
     const [proposals, setProposals] = useState([]);
-    const [acceptingProposal, setAcceptingProposal] = useState(false);
+
+    // Fetch jobs for the current user
+    const fetchJobs = useCallback(async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/jobs/open?userId=${userData._id}`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch jobs');
+            }
+            const data = await response.json();
+            setJobs(data);
+        } catch (error) {
+            console.error(error);
+        }
+    }, [userData]);
 
     useEffect(() => {
-        if (!userData || !userData._id) {
-            return;
-        }
+        fetchJobs();
+    }, [userData, fetchJobs]);
 
+    // Fetch proposals for each job
+    useEffect(() => {
         const fetchProposals = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/proposals?userId=${userData._id}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch proposals');
+                const proposalsData = [];
+                for (const job of jobs) {
+                    const response = await fetch(`http://localhost:5000/api/proposals/${job._id}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch proposals');
+                    }
+                    const data = await response.json();
+                    proposalsData.push(...data);
                 }
-                const data = await response.json();
-                setProposals(data);
+                setProposals(proposalsData.filter(proposal => proposal.status === 'accepted'));
             } catch (error) {
-                console.error('Error fetching proposals:', error.message);
+                console.error(error);
             }
         };
 
-        fetchProposals();
-    }, [userData]);
-    const acceptedProposals = proposals.filter(proposal => proposal.status === "accepted");
-
-    const ConfirmJobCompletion = async (proposalData) => {
-        console.log("Job Id:", proposalData.jobId._id);
-        setAcceptingProposal(true);
-        
-        try {
-          const response = await fetch(`http://localhost:5000/api/jobs/${proposalData.jobId._id}/${proposalData.jobId.userId.email}/confirm-completion-freelancer`, {
-            method: 'PUT',
-            credentials: 'include',
-          });
-      
-          if (!response.ok) {
-            throw new Error('Failed to confirm job completion');
-          }
-      
-          // Update the job status locally or fetch updated job data
-          alert('Job completion confirmed');
-        } catch (error) {
-          console.error('Error confirming job completion:', error.message);
-          // Notify the user of any errors
-          alert('Failed to confirm job completion');
-        } finally {
-            setAcceptingProposal(false);
+        if (jobs.length > 0) {
+            fetchProposals();
         }
-      };
-      
+    }, [jobs]);
+
+    const ConfirmJobCompletion = (proposalData) => {
+        console.log(proposalData._id);
+    };
+    const ReviseJobCompletion = (proposalData) => {
+        console.log(proposalData._id);
+    }
 
     return (
         <div className="container bg-dark p-3 text-light rounded-4">
-            <h1>
-            <button className="btn btn-success  mx-3" onClick={Back}><i className="bi bi-backspace text-white"></i></button>
-                Your Jobs</h1>
+            <h3>
+                <button className="btn btn-success mx-3" onClick={Back}><i className="bi bi-backspace text-white"></i></button>
+                Accepted Proposals/Hired Freelancers for Jobs
+            </h3>
             <ul className="list-group">
-                {acceptedProposals.map(proposal => (
+                {proposals.map(proposal => (
                     <li key={proposal._id} className="list-group-item border border-5 p-3 m-3 rounded-4">
                         <div className="row">
                             <div className="col-12">
@@ -77,7 +84,7 @@ const FreelancerJobs = ({ userData, Back }) => {
                                 <p><strong><i className="bi bi-cash-coin text-success p-1"></i> Rate:</strong> ${proposal.rate}</p>
                             </div>
                             <div className="col-4">
-                                <p><strong>Client Name:</strong> {proposal.jobId.userId.fullName}</p>
+                                <p><strong>Freelancer Name:</strong> {proposal.freelancerId.fullName}</p>
                             </div>
                             <div className="col-4">
                                 <p><strong>Job Status: </strong> {proposal.jobId.status}</p>
@@ -88,7 +95,7 @@ const FreelancerJobs = ({ userData, Back }) => {
                                 <p><strong>Job Duration:</strong> {proposal.jobId.duration}</p>
                             </div>
                             <div className="col-4">
-                                <p><strong>Client Email:</strong> {proposal.jobId.userId.email}</p>
+                                <p><strong>Freelancer Email:</strong> {proposal.freelancerId.email}</p>
                             </div>
                             <div className="col-4">
                                 <p><strong>Job Posted On:</strong> {new Date(proposal.jobId.createdAt).toLocaleDateString()}</p>
@@ -99,22 +106,21 @@ const FreelancerJobs = ({ userData, Back }) => {
                                 <p><strong>Proposal Status:</strong> {proposal.status}</p>
                             </div>
                             <div className="col-4">
-                                <p><strong>Client - <i className="bi bi-geo-alt text-success"></i></strong> <CountryName countryCode={proposal.jobId.userId.country} /></p>
+                                <p><strong>Freelancer - <i className="bi bi-geo-alt text-success"></i></strong> <CountryName countryCode={proposal.freelancerId.country} /></p>
                             </div>
                             <div className="col-4">
                                 <p><strong><i className="bi bi-calendar2-event p-1 text-success"></i>Proposal Submission Date:</strong> {new Date(proposal.createdAt).toLocaleDateString()}</p>
                             </div>
                         </div>
                         <hr className="mt-0" />
-                        {proposal.jobId.status === "open" || proposal.jobId.status === "under_progression" ?(
                         <div className="row">
-                            <div className="col">
-                                <button className="btn btn-primary" type="button" onClick={() => ConfirmJobCompletion(proposal)} disabled={acceptingProposal}>
-                                {acceptingProposal ? "Confirming..." : "Confirm Completion"}
-                                    </button>
-                            </div>
+                            {proposal.jobId.status === "pending_completion_confirmation" ? (
+                                <div className="col">
+                                    <button className="btn btn-primary mx-2" type="button" onClick={() => ConfirmJobCompletion(proposal)}>Confirm Completion</button>
+                                    <button className="btn btn-danger mx-2" type="button" onClick={() => ReviseJobCompletion(proposal)}>Revise Completion</button>
+                                </div>
+                            ) : null}
                         </div>
-                        ):null}
                     </li>
                 ))}
             </ul>
@@ -122,4 +128,4 @@ const FreelancerJobs = ({ userData, Back }) => {
     );
 };
 
-export default FreelancerJobs;
+export default AcceptedProposals;

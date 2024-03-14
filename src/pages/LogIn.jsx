@@ -37,6 +37,8 @@ const LogIn = () => {
       }
     } catch (error) {
       console.error('Error logging in:', error);
+    } finally {
+      window.location.reload();
     }
   }
 

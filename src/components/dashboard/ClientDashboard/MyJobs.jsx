@@ -30,11 +30,21 @@ const MyJobs = ({ userData, comeBack }) => {
 
     const handleEditJob = (jobId) => {
         const jobToEdit = jobs.find(job => job._id === jobId);
-        if (jobToEdit) {
-            setEditingJob(jobToEdit);
-            setStep(2);
+        if (jobToEdit.numberOfProposals > 0) {
+            if (window.confirm("changes may affect the ongoing work with the freelancers.")) {
+                if (jobToEdit) {
+                    setEditingJob(jobToEdit);
+                    setStep(2);
+                }
+            }
+        } else {
+            if (jobToEdit) {
+                setEditingJob(jobToEdit);
+                setStep(2);
+            }
         }
     };
+
 
     const updateJob = async (updatedJobData) => {
         try {
@@ -121,60 +131,64 @@ const MyJobs = ({ userData, comeBack }) => {
         <div className="container-fluid bg-dark text-light p-2  mb-5 rounded-3">
             {step === 1 ? (
                 <>
-                    <h1 className="m-1"> 
-                <button
-                    className="btn btn-success m-1"
-                    onClick={comeBack}
-                >
-                    <i className="bi bi-arrow-left"></i> Go Back
-                </button>
-                Your Jobs</h1>
-                <div style={{ maxHeight: '600px', overflowY: 'scroll' }}>
-                    <ul className="list-group">
-                        {jobs.map(job => (
-                            <li key={job._id} className="list-group-item d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h4 className="mb-1">{job.title}</h4>
-                                    {/* <p className="mb-1">{job.description}</p> */}
-                                    <p className="card-text">{job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}</p>
-                                    
-                                    <p className="mb-0">Skills Required: <strong>{job.skillsRequired || 'N/A'}</strong></p>
-                                    <p className="mb-0">Budget: <strong>${job.budget || 'N/A'}</strong></p>
-                                    <p className="mb-0">Duration: <strong>{job.duration || 'N/A'}</strong></p>
-                                    <p className="mb-0">Status: <strong>{job.status || 'N/A'}</strong></p>
-                                    <p className="mb-0">Job Posted on: <strong>{new Date(job.createdAt).toLocaleDateString()} At: {new Date(job.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></p>
-                                    <p className="mb-0">Last Updated on: <strong>{new Date(job.lastUpdated).toLocaleDateString()} At: {new Date(job.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></p>
-                                </div>
-                                <div className="d-flex flex-column">
-                                    {job.status !== 'closed' && ( // Only render the buttons if the job is not closed
-                                        <>
-                                            <button
-                                                className="btn btn-primary mb-2"
-                                                onClick={() => handleEditJob(job._id)}
-                                            >
-                                                &nbsp;&nbsp;Edit Job&nbsp;&nbsp;
-                                            </button>
-                                            <button
-                                                className="btn btn-warning mb-2"
-                                                onClick={() => handleCloseJob(job._id)}
-                                            >
-                                                &nbsp;Close Job&nbsp;
-                                            </button>
-                                        </>
-                                    )}
-                                    <button
-                                        className="btn btn-danger"
-                                        onClick={() => handleDeleteJob(job._id)} // Assuming you have a function handleDeleteJob
-                                    >
-                                        Delete Job
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </>
-            
+                    <h1 className="m-1">
+                        <button
+                            className="btn btn-success m-1"
+                            onClick={comeBack}
+                        >
+                            <i className="bi bi-arrow-left"></i> Go Back
+                        </button>
+                        Your Jobs</h1>
+                    <div style={{ maxHeight: '600px', overflowY: 'scroll' }}>
+                        <ul className="list-group">
+                            {jobs.map(job => (
+                                <li key={job._id} className="list-group-item d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h4 className="mb-1">{job.title}</h4>
+                                        {/* <p className="mb-1">{job.description}</p> */}
+                                        <p className="card-text">{job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}</p>
+
+                                        <p className="mb-0">Skills Required: <strong>{job.skillsRequired || 'N/A'}</strong></p>
+                                        <p className="mb-0">Budget: <strong>${job.budget || 'N/A'}</strong></p>
+                                        <p className="mb-0">Duration: <strong>{job.duration || 'N/A'}</strong></p>
+                                        <p className="mb-0">Status: <strong>{job.status || 'N/A'}</strong></p>
+                                        <p className="mb-0">Job Posted on: <strong>{new Date(job.createdAt).toLocaleDateString()} At: {new Date(job.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></p>
+                                        <p className="mb-0">Last Updated on: <strong>{new Date(job.lastUpdated).toLocaleDateString()} At: {new Date(job.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></p>
+                                        <p className="mb-0">Number of Proposal: <strong>{job.numberOfProposals}</strong></p>
+                                    </div>
+                                    <div className="d-flex flex-column">
+                                        {job.status !== 'closed' && ( // Only render the buttons if the job is not closed
+                                            <>
+                                                <button
+                                                    className="btn btn-primary mb-2"
+                                                    onClick={() => handleEditJob(job._id)}
+                                                >
+                                                    &nbsp;&nbsp;Edit Job&nbsp;&nbsp;
+                                                </button>
+                                                {job.status === 'pending_completion_confirmation' || job.status === 'under_progression' ? null : (
+                                                <button
+                                                    className="btn btn-warning mb-2"
+                                                    onClick={() => handleCloseJob(job._id)}
+                                                >
+                                                    &nbsp;Close Job&nbsp;
+                                                </button>)}
+                                            </>
+                                        )}
+                                                {job.status === 'pending_completion_confirmation' || job.status === 'under_progression' ? null : (
+
+                                        <button
+                                            className="btn btn-danger"
+                                            onClick={() => handleDeleteJob(job._id)} // Assuming you have a function handleDeleteJob
+                                        >
+                                            Delete Job
+                                        </button>)}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </>
+
 
             ) : (
                 <JobEditingForm

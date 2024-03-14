@@ -328,7 +328,7 @@ const jobSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["open", "closed", "pending_completion_confirmation"], // Example status values
+    enum: ["open", "closed", "pending_completion_confirmation", "under_progression"], // Example status values
     default: "open",
   },
   createdAt: {
@@ -342,6 +342,10 @@ const jobSchema = new mongoose.Schema({
   country: {
     type: String,
     ref: "User.country", // Reference to the country of the User who posted the job
+  },
+  numberOfProposals: {
+    type: Number,
+    default: 0, // Default value is 0
   },
 });
 
@@ -368,6 +372,7 @@ app.post("/api/jobs", async (req, res) => {
       budget,
       duration,
       createdAt,
+      numberOfProposals: 0,
     });
     await job.save();
     res.status(201).json(job);
@@ -462,16 +467,17 @@ app.put("/api/jobs/:id", async (req, res) => {
   }
 });
 
-// status : confirm_completion jobs
-app.put("/api/jobs/:id/confirm-completion", async (req, res) => {
+// Endpoint for the freelancer to mark a job as pending completion confirmation
+app.put("/api/jobs/:id/:email/confirm-completion-freelancer", async (req, res) => {
   const jobId = req.params.id;
+  
 
   try {
     const updatedJob = await Job.findByIdAndUpdate(
       jobId,
       {
         status: "pending_completion_confirmation",
-        lastUpdated: Date.now(), // Update the lastUpdated field to the current date and time
+        lastUpdated: Date.now(),
       },
       { new: true }
     );
@@ -480,12 +486,25 @@ app.put("/api/jobs/:id/confirm-completion", async (req, res) => {
       return res.status(404).send("Job not found");
     }
 
+    // Send an email to the client to check their work
+    const clientEmail = req.params.email;
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: clientEmail,
+      subject: "Job completion confirmation",
+      text: `Dear client, your freelancer has marked the job "${updatedJob.title}" as completed. Please check their work.`,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
     res.json(updatedJob);
   } catch (error) {
     console.error("Error updating status of job:", error);
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 
 // Status:close for jobs
@@ -583,6 +602,9 @@ app.post('/api/submit-proposal', async (req, res) => {
     // Save the proposal to the database
     await proposal.save();
 
+    // Update the numberOfProposals field in the job document
+    await Job.findByIdAndUpdate(jobId, { $inc: { numberOfProposals: 1 } });
+
     // Respond with a success message
     res.status(201).json({ message: 'Proposal submitted successfully' });
   } catch (error) {
@@ -591,6 +613,7 @@ app.post('/api/submit-proposal', async (req, res) => {
     res.status(500).json({ message: 'Failed to submit proposal' });
   }
 });
+
 
 //proposals request about specific user for freelancer
 app.get('/api/proposals', async (req, res) => {
@@ -638,6 +661,14 @@ app.get('/api/proposals/:jobId', async (req, res) => {
     const { jobId } = req.params;
     const proposals = await Proposal.find({ jobId })
       .populate({
+        path: 'jobId',
+        select: 'title description budget duration createdAt status',
+        populate: {
+          path: 'userId',
+          select: 'fullName email country',
+        },
+      })
+      .populate({
         path: 'freelancerId',
         select: 'fullName email country',
       });
@@ -648,6 +679,7 @@ app.get('/api/proposals/:jobId', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch proposals' });
   }
 });
+
 
 // Endpoint for accepting a proposal
 app.put("/api/proposals/:id/accept", async (req, res) => {

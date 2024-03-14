@@ -144,7 +144,7 @@ const FreelanceJobs = () => {
                 {/* <p className="card-text">{job.description.length > 50 ? `${job.description.substring(0, job.description.length / 2)}...` : job.description}</p> */}
                 <p className="card-text">Est. Time: {job.duration}</p>
                 <p className="card-text">Skills: {job.skillsRequired}</p>
-                <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={job.userId.country} /></p>
+                <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={job.userId.country} /> | Proposals : {job.numberOfProposals}</p>
               </div>
             </div>
           ))}

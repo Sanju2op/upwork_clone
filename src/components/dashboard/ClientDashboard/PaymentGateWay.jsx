@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Spinner } from "react-bootstrap";
 
-const PaymentGateway = () => {
+const PaymentGateway = ({ paymentPrice }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePayment = async () => {
@@ -16,6 +16,7 @@ const PaymentGateway = () => {
   return (
     <div className="text-center">
       <h2>Payment Gateway</h2>
+      <h4>You Will Have to pay us : ${paymentPrice}</h4>
       {isProcessing ? (
         <div>
           <Spinner animation="border" role="status">
