@@ -3,6 +3,8 @@ import CountryName from "../../CountryName";
 const AcceptedProposals = ({ userData, Back }) => {
     const [jobs, setJobs] = useState([]);
     const [proposals, setProposals] = useState([]);
+    const [confirmingJob, setConfirmingJob] = useState(false);
+
 
     // Fetch jobs for the current user
     const fetchJobs = useCallback(async () => {
@@ -52,11 +54,58 @@ const AcceptedProposals = ({ userData, Back }) => {
         }
     }, [jobs]);
 
-    const ConfirmJobCompletion = (proposalData) => {
-        console.log(proposalData._id);
-    };
-    const ReviseJobCompletion = (proposalData) => {
-        console.log(proposalData._id);
+    const ConfirmJobCompletion = async (proposalData) => {
+        console.log("Job Id:", proposalData.jobId._id);
+        setConfirmingJob(true);
+        
+        try {
+          const response = await fetch(`http://localhost:5000/api/jobs/${proposalData._id}/${proposalData.freelancerId.email}/confirm-completion-client`, {
+            method: 'PUT',
+            credentials: 'include',
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to confirm job completion');
+          }
+      
+          // Update the job status locally or fetch updated job data
+          alert('Job completion confirmed');
+        } catch (error) {
+          console.error('Error confirming job completion:', error.message);
+          // Notify the user of any errors
+          alert('Failed to confirm job completion');
+        } finally {
+            setConfirmingJob(false);
+        }
+      };
+      
+
+
+    const ReviseJobCompletion = async (proposalData) => {
+        console.log("Job Id:", proposalData.jobId._id);
+        const jobId =  proposalData.jobId._id;
+        if(!jobId) {return};
+        setConfirmingJob(true);
+        
+        try {
+          const response = await fetch(`http://localhost:5000/api/jobs/${jobId}/${proposalData.freelancerId.email}/confirm-completion-revised`, {
+            method: 'PUT',
+            credentials: 'include',
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to confirm job Revision');
+          }
+      
+          // Update the job status locally or fetch updated job data
+          alert('Job Revision confirmed');
+        } catch (error) {
+          console.error('Error confirming job Revision:', error.message);
+          // Notify the user of any errors
+          alert('Failed to confirm job Revision');
+        } finally {
+            setConfirmingJob(false);
+        }
     }
 
     return (
@@ -116,8 +165,8 @@ const AcceptedProposals = ({ userData, Back }) => {
                         <div className="row">
                             {proposal.jobId.status === "pending_completion_confirmation" ? (
                                 <div className="col">
-                                    <button className="btn btn-primary mx-2" type="button" onClick={() => ConfirmJobCompletion(proposal)}>Confirm Completion</button>
-                                    <button className="btn btn-danger mx-2" type="button" onClick={() => ReviseJobCompletion(proposal)}>Revise Completion</button>
+                                    <button className="btn btn-primary mx-2" type="button" onClick={() => ConfirmJobCompletion(proposal)} disabled={confirmingJob}>{confirmingJob ? "confirming..." : "Confirm Completion"}</button>
+                                    <button className="btn btn-danger mx-2" type="button" onClick={() => ReviseJobCompletion(proposal)}disabled={confirmingJob}>{confirmingJob ? "revising..." : "Revise Completion"}</button>
                                 </div>
                             ) : null}
                         </div>

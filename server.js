@@ -506,6 +506,102 @@ app.put("/api/jobs/:id/:email/confirm-completion-freelancer", async (req, res) =
 });
 
 
+// Endpoint for the client to mark a job as complete
+app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
+  const proposalId = req.params.id;
+
+  try {
+    // Update the proposal status to "job_completed"
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId,
+      {
+        status: "job_completed",
+      },
+      { new: true }
+    );
+
+    if (!updatedProposal) {
+      return res.status(404).send("Proposal not found");
+    }
+
+    // Update the job status to "closed"
+    const jobId = updatedProposal.jobId;
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      {
+        status: "closed",
+        lastUpdated: Date.now(),
+      },
+      { new: true }
+    );
+
+    if (!updatedJob) {
+      return res.status(404).send("Job not found");
+    }
+
+    const serviceFee = updatedProposal.rate * 0.03;
+    const amountAfterFees = updatedProposal.rate - serviceFee;
+    // Send an email to the client to check their work
+    const freelancerEmail = req.params.email;
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: freelancerEmail,
+      subject: "Job completion confirmation",
+      text: `Dear Freelancer, your client has marked the job "${updatedJob.title}" as completed. \n\n Please check your bank or wallet for your payment of $${amountAfterFees} after service charges. \n\n Total T&C Applied : $${serviceFee} for you job.\n\nTeam Upwork Thank You.`,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    res.json(updatedJob);
+  } catch (error) {
+    console.error("Error updating status of job:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+// Job revision
+app.put("/api/jobs/:id/:email/confirm-completion-revised", async (req, res) => {
+  const jobId = req.params.id;
+
+  try {
+    // Update the job status to "under_progression"
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      {
+        status: "under_progression",
+        lastUpdated: Date.now(),
+      },
+      { new: true }
+    );
+
+    if (!updatedJob) {
+      return res.status(404).send("Job not found");
+    }
+
+    // Send an email to the freelancer to revise the work
+    const freelancerEmail = req.params.email;
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: freelancerEmail,
+      subject: "Job Revision Required",
+      text: `Dear Freelancer, your client has requested a revision for the job "${updatedJob.title}". Please revise the work and resubmit it for approval.\n\nTeam Upwork Thank You.`,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    res.json(updatedJob);
+  } catch (error) {
+    console.error("Error updating status of job:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+
+
 
 // Status:close for jobs
 app.put("/api/jobs/:jobId/close", async (req, res) => {
@@ -568,7 +664,7 @@ const proposalSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected','withdrawn'],
+    enum: ['pending', 'accepted', 'rejected','withdrawn', 'job_completed'],
     default: 'pending',
   },
   clientNotes: {
@@ -578,7 +674,7 @@ const proposalSchema = new mongoose.Schema({
 
 const Proposal = mongoose.model('Proposal', proposalSchema);
 
-// Endpoint to submit a proposal
+// Endpoint to submit a proposal @proposalsubmit
 app.post('/api/submit-proposal', async (req, res) => {
   const { jobId, freelancerId, coverLetter, rate, duration } = req.body;
 
