@@ -13,6 +13,7 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import FreelanceJobs from "./pages/FreelanceJobs";
 import TalentMarket from "./pages/TalentMarket";
+import AdminDashboard from "./Admin/AdminDashboard";
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/dashboard" element={<DashboardWithRefresh />} />
           <Route path="/freelance-jobs" element={<FreelanceJobs />} />
           <Route path="/talent-marketplace" element={<TalentMarket />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>

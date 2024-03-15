@@ -365,8 +365,8 @@ app.post("/api/sendVerificationCode", async (req, res) => {
   const mailOptions = {
     from: "sanjaylagaria79901@gmail.com",
     to: email,
-    subject: "Upwork - Email Verification Code",
-    text: `Your verification code is: ${verificationCode}`,
+    subject: "Upwork-clone - One Time Email Verification Code",
+    text: `<h1>Your verification code is: <strong>${verificationCode}</strong></h1>`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -657,7 +657,7 @@ app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
       from: "sanjaylagaria79901@gmail.com",
       to: freelancerEmail,
       subject: "Job completion confirmation",
-      text: `Dear Freelancer, your client has marked the job "${updatedJob.title}" as completed. \n\n Please check your bank or wallet for your payment of $${amountAfterFees} after service charges. \n\n Total T&C Applied : $${serviceFee} for you job.\n\nTeam Upwork Thank You.`,
+      text: `Dear Freelancer, your client has marked the job "${updatedJob.title}" as completed. \n\n Please check your bank or wallet for your payment of $${amountAfterFees} after service charges. \n\n Total T&C Applied : $${serviceFee} for you job.\n\n Upwork-clone Thank You.`,
     };
 
     // Send the email
@@ -695,7 +695,7 @@ app.put("/api/jobs/:id/:email/confirm-completion-revised", async (req, res) => {
       from: "sanjaylagaria79901@gmail.com",
       to: freelancerEmail,
       subject: "Job Revision Required",
-      text: `Dear Freelancer, your client has requested a revision for the job "${updatedJob.title}". Please revise the work and resubmit it for approval.\n\nTeam Upwork Thank You.`,
+      text: `Dear Freelancer, your client has requested a revision for the job "${updatedJob.title}". Please revise the work and resubmit it for approval.\n\nTeam Upwork-clone Thank You.`,
     };
 
     // Send the email
@@ -925,6 +925,49 @@ app.put("/api/proposals/:id/accept", async (req, res) => {
   }
 });
 
+// Endpoint for Rejecting a proposal
+app.put("/api/proposals/:id/reject", async (req, res) => {
+  const proposalId = req.params.id;
+
+  try {
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId,
+      { status: "rejected" },
+      { new: true }
+    )
+      .populate("freelancerId")
+      .populate("jobId"); // Populate the freelancerId and jobId fields
+
+    if (!updatedProposal) {
+      return res.status(404).send("Proposal not found");
+    }
+
+    // Now updatedProposal.freelancerId and updatedProposal.jobId should contain the full documents
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: updatedProposal.freelancerId.email,
+      subject: "🚫 Your proposal has been Rejected",
+      text: `We are Sorry but  Your proposal for the job "${updatedProposal.jobId.title}" has been Rejected.`,
+    };
+
+    // Send email notification
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ error: "Failed to send email notification." });
+      } else {
+        console.log("Email sent:", info.response);
+        res
+          .status(200)
+          .json({ message: "Email notification sent successfully." });
+      }
+    });
+  } catch (error) {
+    console.error("Error accepting proposal:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // contracts Schema
 const contractSchema = new mongoose.Schema({
   jobId: {
@@ -990,7 +1033,7 @@ app.post("/api/contracts", async (req, res) => {
       from: "sanjaylagaria79901@gmail.com",
       to: clientEmail,
       subject: "Contract Details",
-      text: `Dear ${clientName},\n\nCongratulations! we are glad that you found freelancder ${freelancerName} for the job "${jobTitle}".\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nFreelancer Name: ${freelancerName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
+      text: `Dear ${clientName},\n\nCongratulations! we are glad that you found freelancer ${freelancerName} for the job "${jobTitle}".\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nFreelancer Name: ${freelancerName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\n Upwork-Clone`,
     };
     transporter.sendMail(clientMailOptions, (clientError, clientInfo) => {
       if (clientError) {
@@ -1004,7 +1047,7 @@ app.post("/api/contracts", async (req, res) => {
       from: "sanjaylagaria79901@gmail.com",
       to: freelancerEmail,
       subject: "Contract Details",
-      text: `Dear ${freelancerName},\n\nCongratulations! Your proposal for the job "${jobTitle}" has been accepted by the client "${clientName}" .\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nClient Name: ${clientName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\nYour Company Name`,
+      text: `Dear ${freelancerName},\n\nCongratulations! Your proposal for the job "${jobTitle}" has been accepted by the client "${clientName}" .\n\nContract Details:\nJob Title: ${jobTitle}\nJob Description: ${jobDescription}\nClient Name: ${clientName}\nAgreed Price: $${agreedPrice}\n\nPlease review the contract details and let us know if everything looks correct. Once both parties agree, the contract will be considered finalized.\n\nThank you,\n Upwork-Clone`,
     };
     transporter.sendMail(
       freelancerMailOptions,

@@ -81,6 +81,36 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
         }
     };
 
+    const handleRejectProposal = async () => {
+        setAcceptingProposal(true); // Set to true when starting the accept process
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/proposals/${selectedProposal._id}/reject`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                alert('Failed to reject proposal');
+                throw new Error('Failed to reject proposal');
+            }
+            // Update the proposal status locally
+            const updatedProposals = proposals.map(p => {
+                if (p._id === selectedProposal._id) {
+                    return { ...p, status: 'rejected' }; // Update the status to 'rejected'
+                }
+                return p;
+            });
+            setProposals(updatedProposals);
+            setSelectedProposal({ ...selectedProposal, status: 'rejected' }); // Update the selectedProposal status
+
+            alert("Proposal rejected");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setAcceptingProposal(false); // Reset to false when the accept process is complete
+        }
+    };
+
     // Function to save the contract to the database (you need to implement this)
     const saveContract = async (contract) => {
         try {
@@ -100,6 +130,7 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
             console.error(error);
         }
     };
+
     const filteredProposals = filterStatus
         ? proposals.filter((proposal) => proposal.status === filterStatus)
         : proposals;
@@ -133,22 +164,28 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
                             All
                         </button>
                         <button
+                            className={`btn ${filterStatus === 'pending' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setFilterStatus('pending')}
+                        >
+                            Pending
+                        </button>
+                        <button
                             className={`btn ${filterStatus === 'accepted' ? 'btn-primary' : 'btn-outline-primary'}`}
                             onClick={() => setFilterStatus('accepted')}
                         >
                             Accepted
                         </button>
                         <button
+                            className={`btn ${filterStatus === 'rejected' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setFilterStatus('rejected')}
+                        >
+                            Rejected
+                        </button>
+                        <button
                             className={`btn ${filterStatus === 'withdrawn' ? 'btn-primary' : 'btn-outline-primary'}`}
                             onClick={() => setFilterStatus('withdrawn')}
                         >
                             Withdrawn
-                        </button>
-                        <button
-                            className={`btn ${filterStatus === 'pending' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => setFilterStatus('pending')}
-                        >
-                            Pending
                         </button>
                     </div>
                     {filteredProposals.length > 0 ? (
@@ -172,13 +209,22 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
                                     <div>
                                         <button className="btn btn-success m-2 rounded-3" onClick={() => setSelectedProposal(null)}><i className="bi bi-x-circle"></i></button>
                                         {selectedProposal.status === "pending" && (
-                                            <button
-                                                className="btn btn-primary m-2 rounded-3"
-                                                onClick={handleAcceptProposal}
-                                                disabled={acceptingProposal}
-                                            >
-                                                {acceptingProposal ? "Accepting..." : "Accept Proposal"}
-                                            </button>
+                                            <>
+                                                <button
+                                                    className="btn btn-primary m-2 rounded-3"
+                                                    onClick={handleAcceptProposal}
+                                                    disabled={acceptingProposal}
+                                                >
+                                                    {acceptingProposal ? "Accepting..." : "Accept Proposal"}
+                                                </button>
+                                                <button
+                                                    className="btn btn-danger m-2 rounded-3"
+                                                    onClick={handleRejectProposal}
+                                                    disabled={acceptingProposal}
+                                                >
+                                                    {acceptingProposal ? "Rejecting..." : "Reject Proposal"}
+                                                </button>
+                                            </>
                                         )}
                                         <h4>Proposal:</h4>
                                         <p>Freelancer: {selectedProposal.freelancerId.fullName}</p>

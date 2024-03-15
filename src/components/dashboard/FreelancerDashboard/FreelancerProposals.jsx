@@ -34,7 +34,7 @@ const FreelancerProposals = ({ userData, Back }) => {
         await setProposalData(proposalData);
         setStep(2);
     }
-    
+
     const handleProposalWithdrawal = async (proposal) => {
         setWithdrawingProposal(true);
         try {
@@ -60,21 +60,22 @@ const FreelancerProposals = ({ userData, Back }) => {
             setWithdrawingProposal(false); // Reset to false when the withdrawal process is complete
         }
     };
-    
+
     return (
         <div className="container mt-2 bg-dark text-light p-2 rounded-3">
-            { step === 1 ?(
+            {step === 1 ? (
                 <h1 className="mb-4">
-                <button className="btn btn-success m-3" onClick={Back}><i className="bi bi-arrow-left"></i></button>
-                My Proposals
-            </h1>
-            ) : null }
+                    <button className="btn btn-success m-3" onClick={Back}><i className="bi bi-arrow-left"></i></button>
+                    My Proposals
+                </h1>
+            ) : null}
             {step === 1 && (
                 <>
                     <div className="mb-3">
                         <button className="btn btn-primary me-2" onClick={() => setFilterStatus('')}>All</button>
                         <button className="btn btn-primary me-2" onClick={() => setFilterStatus('pending')}>Pending</button>
                         <button className="btn btn-primary me-2" onClick={() => setFilterStatus('accepted')}>Accepted</button>
+                        <button className="btn btn-primary me-2" onClick={() => setFilterStatus('rejected')}>Rejected</button>
                         <button className="btn btn-primary me-2" onClick={() => setFilterStatus('job_completed')}>Completed</button>
                         <button className="btn btn-primary me-2" onClick={() => setFilterStatus('withdrawn')}>Withdrawn</button>
                     </div>
@@ -100,14 +101,14 @@ const FreelancerProposals = ({ userData, Back }) => {
                                         >
                                             View Proposal Details
                                         </button>
-                                        { proposal.status === "job_completed" || proposal.status === "withdrawn" || proposal.status === "accepted" ? null : (
+                                        {proposal.status === "job_completed" || proposal.status === "withdrawn" || proposal.status === "accepted" || proposal.status === "rejected" ? null : (
                                             <button
                                                 className="btn btn-danger m-2"
                                                 onClick={() => handleProposalWithdrawal(proposal)}
                                                 disabled={withdrawingProposal} // Disable button while withdrawing
                                             >
                                                 {withdrawingProposal ? "Withdrawing..." : "Withdraw Proposal"}
-                                            </button>   
+                                            </button>
                                         )}
                                     </div>
                                 </li>

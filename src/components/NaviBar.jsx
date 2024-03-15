@@ -118,6 +118,8 @@ function NaviBar() {
         </div>
       </nav>
     );
+  } else if (location.pathname === '/admin') {
+    return null;
   } else {
     return (
       <nav className="navbar navbar-expand-sm navbar-light bg-light navbar-left border-bottom">
