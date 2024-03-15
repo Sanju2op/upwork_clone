@@ -6,9 +6,10 @@ const MongoStore = require("connect-mongo");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const multer = require("multer");
+
 // const passport = require("passport");
 // const LocalStrategy = require("passport-local").Strategy;
-const multer = require("multer");
 // const path = require("path");
 
 const storage = multer.diskStorage({
@@ -216,17 +217,27 @@ app.post("/api/signup", async (req, res) => {
 //login processes
 
 // Login route without Passport.js
+
 // app.post("/api/login", async (req, res) => {
+
 //   const { email, password } = req.body;
+
 //   // Find user in the database
 //   const user = await User.findOne({ email, password });
+
 //   if (user) {
+
 //     // User found, return success response
+
 //     res.status(200).json({ message: "Login successful", user });
+
 //   } else {
 //     // User not found or incorrect credentials, return error response
+
 //     res.status(401).json({ message: "Invalid username or password" });
+
 //   }
+
 // });
 
 //login process
@@ -279,6 +290,7 @@ app.get("/api/user", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" }); // Generic error for client
   }
 });
+
 // passport.use(new LocalStrategy(
 //     { usernameField: 'email' }, // Specify the field for the username
 //     async (email, password, done) => {
@@ -293,6 +305,7 @@ app.get("/api/user", async (req, res) => {
 //       }
 //     }
 //   ));
+
 //   passport.serializeUser((user, done) => {
 //     done(null, user.id);
 //   });
@@ -313,14 +326,19 @@ app.get("/api/user", async (req, res) => {
 //   });
 
 //   // Server side route to get user data based on session ID
+
 // app.get("/api/user", (req, res) => {
+
 //   // Check if user is authenticated
+
 //   if (req.isAuthenticated()) {
 //     console.log("user", req.user.email, " Requested session data");
 //     res.status(200).json({ user: req.user });
+
 //   } else {
 //     // User is not authenticated, return 401 unauthorized status
 //     console.log("user", req.user.email, " is unauthorized ");
+
 //     res.status(401).json({ error: "Unauthorized" });
 //   }
 // });
@@ -461,6 +479,13 @@ const jobSchema = new mongoose.Schema({
     default: 0, // Default value is 0
   },
 });
+
+//Revenue Schema
+const revenueSchema = new mongoose.Schema({
+  date: { type: Date, required: true },
+  amount: { type: Number, required: true },
+});
+const Revenue = mongoose.model("Revenue", revenueSchema);
 
 const Job = mongoose.model("Job", jobSchema);
 
@@ -648,16 +673,43 @@ app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
     if (!updatedJob) {
       return res.status(404).send("Job not found");
     }
+    const transactionAmount = updatedProposal.rate; // Example transaction amount
+    const flatFee = 4; // Flat fee for transactions less than $25
+    const percentageFee = 0.09; // 9% of the transaction amount
 
-    const serviceFee = updatedProposal.rate * 0.03;
-    const amountAfterFees = updatedProposal.rate - serviceFee;
+    // Calculate the total fee
+    let totalFee;
+    if (transactionAmount < 25) {
+      totalFee = Math.max(flatFee, transactionAmount);
+    } else {
+      totalFee = transactionAmount * percentageFee;
+    }
+
+    //Revenue
+    const revenue = new Revenue({
+      date: new Date(), // Assuming today's date for simplicity, you can use any date you want
+      amount: totalFee,
+    });
+
+    // Save the revenue document to the database
+    revenue
+      .save()
+      .then(() => {
+        console.log("Service fee revenue saved successfully");
+      })
+      .catch((err) => {
+        console.error("Error saving service fee revenue:", err);
+      });
+
+    const amountAfterFees = updatedProposal.rate - totalFee;
+    // const serviceFee = updatedProposal.rate * 0.03;
     // Send an email to the client to check their work
     const freelancerEmail = req.params.email;
     const mailOptions = {
       from: "sanjaylagaria79901@gmail.com",
       to: freelancerEmail,
       subject: "Job completion confirmation",
-      text: `Dear Freelancer, your client has marked the job "${updatedJob.title}" as completed. \n\n Please check your bank or wallet for your payment of $${amountAfterFees} after service charges. \n\n Total T&C Applied : $${serviceFee} for you job.\n\n Upwork-clone Thank You.`,
+      text: `Dear Freelancer, your client has marked the job "${updatedJob.title}" as completed. \n\n Please check your bank or wallet for your payment of $${amountAfterFees} after service charges. \n\n Total T&C Applied : $${totalFee} for you job.\n\n Upwork-clone Thank You.`,
     };
 
     // Send the email
@@ -1201,6 +1253,245 @@ app.post("/api/contact-freelancer", async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ error: "Failed to send email." });
+  }
+});
+
+//Admin Processes
+
+const adminSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  isSuperAdmin: {
+    type: Boolean,
+    required: true,
+  },
+  logs: [
+    {
+      loginDate: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+});
+
+const Admin = mongoose.model("Admin", adminSchema);
+
+// POST route for admin login
+app.post("/api/admin/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    // Find admin by username
+    const admin = await Admin.findOneAndUpdate(
+      { username, password },
+      { $push: { logs: { loginDate: new Date() } } },
+      { new: true }
+    ).exec();
+    if (admin) {
+      // Set session data for admin
+      req.session.adminId = admin._id;
+      req.session.isAdmin = true;
+      req.session.adminType = admin.isSuperAdmin;
+      req.session.save();
+      res.status(200).json({ message: "Admin logged in successfully" });
+    } else {
+      res.status(401).json({ error: "Invalid username or password" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/api/admin", async (req, res) => {
+  try {
+    // Check if session is available and isAdmin is true
+    if (req.session && req.session.isAdmin) {
+      const admin = await Admin.findOne({ _id: req.session.adminId }).exec();
+      if (admin) {
+        // console.log("Admin", admin.username, "requested session data");
+        res.status(200).json({ admin });
+        return;
+      }
+    }
+    console.log("Admin is unauthorized");
+    res.status(401).json({ error: "Unauthorized" });
+  } catch (error) {
+    console.error("Error fetching admin data:", error);
+    res.status(500).json({ error: "Internal Server Error" }); // Generic error for client
+  }
+});
+
+// a route to fetch all users' data
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    // Fetch all users from the database
+    const users = await User.find();
+    res.json(users); // Send the users as JSON response
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// a route to fetch all jobs data
+app.get("/api/admin/jobs", async (req, res) => {
+  try {
+    // Fetch all jobs from the database
+    const jobs = await Job.find();
+    res.json(jobs); // Send the jobs as JSON response
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// a route to fetch all proposals' data
+app.get("/api/admin/proposals", async (req, res) => {
+  try {
+    // Fetch all proposals from the database and populate the referenced fields
+    const proposals = await Proposal.find()
+      .populate({
+        path: "freelancerId",
+        select: "fullName email country", // Select only the fields you need
+      })
+      .populate({
+        path: "jobId",
+        select: "title", // Select only the fields you need
+      })
+      .exec();
+
+    res.json(proposals); // Send the proposals as JSON response
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Admin Matrices  for app performance
+async function calculateRevenue(startDate, endDate) {
+  // Assuming revenue is stored in a collection or calculated based on other data
+  const revenueData = await Revenue.find({
+    date: { $gte: startDate, $lt: endDate },
+  });
+
+  // Calculate total revenue from the revenueData
+  const totalRevenue = revenueData.reduce(
+    (total, revenue) => total + revenue.amount,
+    0
+  );
+
+  return totalRevenue;
+}
+
+// Route to fetch metrics for a specific date range
+app.get("/api/admin/metrics", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const startOfDay = new Date(startDate);
+    const endOfDay = new Date(endDate);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
+    const newSignups = await User.countDocuments({
+      createdAt: { $gte: startOfDay, $lt: endOfDay },
+    });
+
+    const newProposals = await Proposal.countDocuments({
+      createdAt: { $gte: startOfDay, $lt: endOfDay },
+    });
+
+    const newJobs = await Job.countDocuments({
+      createdAt: { $gte: startOfDay, $lt: endOfDay },
+    });
+
+    // Assuming revenue is stored in a collection or calculated based on other data
+    const revenue = await calculateRevenue(startOfDay, endOfDay);
+
+    res.json({ newSignups, newProposals, newJobs, revenue });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Define the endpoint for editing user data
+app.put("/api/admin/EditUser", async (req, res) => {
+  try {
+    // Assuming you are passing the user ID in the request body
+    const { userId, fullName, email, userType, country, password } = req.body;
+    console.log(userId, fullName, email, userType, country, password);
+
+    // Find the user by ID and update their data
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        fullName,
+        email,
+        userType,
+        country,
+        password, // You may want to hash the password before saving it to the database
+      },
+      { new: true }
+    );
+
+    // Respond with the updated user data
+    console.log(updatedUser);
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// delete user admin
+app.delete("/api/admin/user/:userId/delete", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// delete Jobs admin
+app.delete("/api/admin/job/:jobId/delete", async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+
+    // Assuming you have a Job model and you use it to delete the job
+    await Job.findByIdAndDelete(jobId);
+
+    res.status(200).json({ message: "Job deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Delete Proposal by ID
+app.delete("/api/admin/proposal/:proposalId/delete", async (req, res) => {
+  try {
+    const proposalId = req.params.proposalId;
+
+    // Assuming you have a Proposal model and you use it to delete the proposal
+    await Proposal.findByIdAndDelete(proposalId);
+
+    res.status(200).json({ message: "Proposal deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting proposal:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

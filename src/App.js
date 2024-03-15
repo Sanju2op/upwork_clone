@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import FreelanceJobs from "./pages/FreelanceJobs";
 import TalentMarket from "./pages/TalentMarket";
 import AdminDashboard from "./Admin/AdminDashboard";
+import AdminLogin from "./Admin/AdminLogin";
 
 const App = () => {
   return (
@@ -27,7 +28,8 @@ const App = () => {
           <Route path="/dashboard" element={<DashboardWithRefresh />} />
           <Route path="/freelance-jobs" element={<FreelanceJobs />} />
           <Route path="/talent-marketplace" element={<TalentMarket />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>

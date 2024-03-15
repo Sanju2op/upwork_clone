@@ -15,26 +15,28 @@ function NaviBar() {
   };
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/user', {
-      method: 'GET',
-      credentials: 'include', // Include cookies in the request
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-        return response.json();
+    if (location.pathname !== '/admin' || location.pathname !== '/admin/dashboard') {
+      fetch('http://localhost:5000/api/user', {
+        method: 'GET',
+        credentials: 'include', // Include cookies in the request
       })
-      .then(data => {
-        setUser(data.user);
-      })
-      .catch(error => {
-        // Handle errors, e.g., redirect to login page
-        // navigate('/login');
-        console.error(error);
-        setUser(null); // Set user to null to avoid rendering errors
-      });
-  }, []);
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setUser(data.user);
+        })
+        .catch(error => {
+          // Handle errors, e.g., redirect to login page
+          // navigate('/login');
+          console.error(error);
+          setUser(null); // Set user to null to avoid rendering errors
+        });
+    }
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -64,7 +66,7 @@ function NaviBar() {
       </div>
     </nav>
     );
-  } else if (user) {
+  } else if (user && location.pathname !== '/admin' && location.pathname !== '/admin/dashboard') {
     return (
       <nav className="navbar navbar-expand-sm navbar-light bg-light navbar-left border-bottom">
         <div className='navbar-brand brand-logo'>
@@ -118,7 +120,7 @@ function NaviBar() {
         </div>
       </nav>
     );
-  } else if (location.pathname === '/admin') {
+  } else if (location.pathname === '/admin' || location.pathname === '/admin/dashboard') {
     return null;
   } else {
     return (
