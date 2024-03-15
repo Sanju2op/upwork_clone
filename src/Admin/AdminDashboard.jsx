@@ -157,6 +157,14 @@ function AdminDashboard() {
     handleDateRangeSubmit();
   }, [handleDateRangeSubmit]);
 
+  const ManageUserPermission = () => {
+    if (adminData.isSuperAdmin === true) {
+      setStep(2);
+    } else {
+      alert("YOU Have to be Super Admin to Edit or Delete Users Data");
+    }
+  }
+
   return (
     <>
       {step === 1 ? (
@@ -167,7 +175,7 @@ function AdminDashboard() {
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="mr-auto">
                 <NavItem>
-                  <Button onClick={() => setStep(2)} className="nav-link">Manage Users</Button>
+                  <Button onClick={() => ManageUserPermission()} className="nav-link">Manage Users</Button>
                 </NavItem>
                 <NavItem>
                   <Button onClick={() => setStep(3)} className="nav-link"> Manage Jobs</Button>
