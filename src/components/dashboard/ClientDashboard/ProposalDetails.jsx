@@ -9,6 +9,7 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
     const [acceptingProposal, setAcceptingProposal] = useState(false);
     const [showPaymentGateway, setShowPaymentGateway] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [filterStatus, setFilterStatus] = useState(null);
 
     useEffect(() => {
         const fetchProposals = async (jobId) => {
@@ -33,10 +34,10 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
     const handleAcceptProposal = async () => {
         setAcceptingProposal(true); // Set to true when starting the accept process
         setIsProcessing(true);
-    setShowPaymentGateway(true);
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate payment process
-    setIsProcessing(false);
-    setShowPaymentGateway(false);
+        setShowPaymentGateway(true);
+        await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate payment process
+        setIsProcessing(false);
+        setShowPaymentGateway(false);
         try {
             const response = await fetch(`http://localhost:5000/api/proposals/${selectedProposal._id}/accept`, {
                 method: 'PUT',
@@ -99,82 +100,111 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
             console.error(error);
         }
     };
+    const filteredProposals = filterStatus
+        ? proposals.filter((proposal) => proposal.status === filterStatus)
+        : proposals;
 
     return (
         <div>
             {showPaymentGateway && <PaymentGateway paymentPrice={selectedProposal.rate} />}
-      {isProcessing ? (
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      ) : (
-        <div className="container mt-4 p-3 bg-light text-dark rounded">
-            <h1>
-                <button
-                    className="btn btn-success m-1 mb-2 p-2"
-                    onClick={Back}
-                >
-                    <i className="bi bi-arrow-left"></i> Go Back
-                </button>
-                Proposals for Job Title:
-            </h1>
-            <h4>{jobData.title}</h4>
-            <p className="text-muted">Skills Required: {jobData.skillsRequired}</p>
-            <h5 className="alert alert-danger">Total Proposals: {proposals.length}</h5>
-            {proposals.length > 0 ? (
-                <div className="row">
-                    <div className={selectedProposal ? "col-4 border border-4 border-secondary rounded-4" : "col-12 border border-4 border-secondary rounded-4"} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-                        <ul className="list-group">
-                            {proposals.map((proposal) => (
-                                <li key={proposal._id} style={{ "cursor": "pointer" }} className="list-group-item" onClick={() => setSelectedProposal(proposal)}>
-                                    <div>
-                                        <p>Freelancer: {proposal.freelancerId.fullName}</p>
-                                        <small>Skills: <b>{proposal.freelancerId.fullName}</b></small><br />
-                                        <small>Status: <b>{proposal.status}</b></small>
-                                        <p className="mb-0">Submitted on: <strong>{new Date(proposal.createdAt).toLocaleDateString()} at {new Date(proposal.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></p>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+            {isProcessing ? (
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+            ) : (
+                <div className="container mt-4 p-3 bg-light text-dark rounded">
+                    <h1>
+                        <button
+                            className="btn btn-success m-1 mb-2 p-2"
+                            onClick={Back}
+                        >
+                            <i className="bi bi-arrow-left"></i> Go Back
+                        </button>
+                        Proposals for Job Title:
+                    </h1>
+                    <h4>{jobData.title}</h4>
+                    <p className="text-muted">Skills Required: {jobData.skillsRequired}</p>
+                    <h5 className="alert alert-danger">Total Proposals: {proposals.length}</h5>
+                    <div className="btn-group mb-3">
+                        <button
+                            className={`btn ${filterStatus === null ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setFilterStatus(null)}
+                        >
+                            All
+                        </button>
+                        <button
+                            className={`btn ${filterStatus === 'accepted' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setFilterStatus('accepted')}
+                        >
+                            Accepted
+                        </button>
+                        <button
+                            className={`btn ${filterStatus === 'withdrawn' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setFilterStatus('withdrawn')}
+                        >
+                            Withdrawn
+                        </button>
+                        <button
+                            className={`btn ${filterStatus === 'pending' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setFilterStatus('pending')}
+                        >
+                            Pending
+                        </button>
                     </div>
-                    {selectedProposal && (
-                        <div className="col-8 bg-dark text-light p-4 rounded-4 mr-2">
-                            <div>
-                                <button className="btn btn-success m-2 rounded-3" onClick={() => setSelectedProposal(null)}><i className="bi bi-x-circle"></i></button>
-                                {selectedProposal.status === "pending" && (
-                                    <button
-                                        className="btn btn-primary m-2 rounded-3"
-                                        onClick={handleAcceptProposal}
-                                        disabled={acceptingProposal}
-                                    >
-                                        {acceptingProposal ? "Accepting..." : "Accept Proposal"}
-                                    </button>
-                                )}
-                                <h4>Proposal:</h4>
-                                <p>Freelancer: {selectedProposal.freelancerId.fullName}</p>
-                                <p>Skills: {selectedProposal.freelancerId.skills}</p>
-                                <hr />
-                                <p>CoverLetter: </p>
-                                <pre style={{ maxHeight: '200px', overflowY: 'auto', width: "100%", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}>
-                                    {selectedProposal.coverLetter}
-                                </pre>
-
-                                <hr />
-                                <p>Details</p>
-                                <p>Biding: <b>$</b>{selectedProposal.rate}</p>
-                                <p>Est. Time: {selectedProposal.duration}</p>
-                                <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={selectedProposal.freelancerId.country} /></p>
-                                <p>Submitted on: {new Date(selectedProposal.createdAt).toLocaleString()}</p>
-                                {/* Add other details you want to display */}
+                    {filteredProposals.length > 0 ? (
+                        <div className="row">
+                            <div className={selectedProposal ? "col-4 border border-4 border-secondary rounded-4" : "col-12 border border-4 border-secondary rounded-4"} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                                <ul className="list-group">
+                                    {proposals.map((proposal) => (
+                                        <li key={proposal._id} style={{ "cursor": "pointer" }} className="list-group-item" onClick={() => setSelectedProposal(proposal)}>
+                                            <div>
+                                                <p>Freelancer: {proposal.freelancerId.fullName}</p>
+                                                <small>Skills: <b>{proposal.freelancerId.skills}</b></small><br />
+                                                <small>Status: <b>{proposal.status}</b></small>
+                                                <p className="mb-0">Submitted on: <strong>{new Date(proposal.createdAt).toLocaleDateString()} at {new Date(proposal.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
+                            {selectedProposal && (
+                                <div className="col-8 bg-dark text-light p-4 rounded-4 mr-2">
+                                    <div>
+                                        <button className="btn btn-success m-2 rounded-3" onClick={() => setSelectedProposal(null)}><i className="bi bi-x-circle"></i></button>
+                                        {selectedProposal.status === "pending" && (
+                                            <button
+                                                className="btn btn-primary m-2 rounded-3"
+                                                onClick={handleAcceptProposal}
+                                                disabled={acceptingProposal}
+                                            >
+                                                {acceptingProposal ? "Accepting..." : "Accept Proposal"}
+                                            </button>
+                                        )}
+                                        <h4>Proposal:</h4>
+                                        <p>Freelancer: {selectedProposal.freelancerId.fullName}</p>
+                                        <p>Skills: {selectedProposal.freelancerId.skills}</p>
+                                        <hr />
+                                        <p>CoverLetter: </p>
+                                        <pre style={{ maxHeight: '200px', overflowY: 'auto', width: "100%", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}>
+                                            {selectedProposal.coverLetter}
+                                        </pre>
+
+                                        <hr />
+                                        <p>Details</p>
+                                        <p>Biding: <b>$</b>{selectedProposal.rate}</p>
+                                        <p>Est. Time: {selectedProposal.duration}</p>
+                                        <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={selectedProposal.freelancerId.country} /></p>
+                                        <p>Submitted on: {new Date(selectedProposal.createdAt).toLocaleString()}</p>
+                                        {/* Add other details you want to display */}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                    ) : (
+                        <p>No proposals yet.</p>
                     )}
                 </div>
-            ) : (
-                <p>No proposals yet.</p>
             )}
-        </div>
-        )}
         </div>
     );
 };

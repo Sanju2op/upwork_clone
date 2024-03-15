@@ -98,7 +98,7 @@ const TalentMarket = () => {
       freelancer.skills.some((skill) => skill.toLowerCase().includes(searchTermLower))
     );
   });
-
+  // console.log(filteredFreelancers);
   return (
     <div className="container">
       <h1 className="mt-4">Talent Market</h1>
@@ -137,6 +137,7 @@ const TalentMarket = () => {
                     )}
                     <h5 className="card-title">{freelancer.fullName}</h5>
                     <p className="card-text">{freelancer.description}</p>
+                    <p className="card-text">Jobs Completed: {freelancer.numberOfCompletedProposals}</p>
                   </div>
                   <div className="card-footer">
                     <button className="btn btn-success rounded" onClick={() => handleContact(freelancer)}>Contact</button>

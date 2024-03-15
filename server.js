@@ -99,21 +99,27 @@ app.post(
   async (req, res) => {
     const { fullName, email, country, skills, description, password } =
       req.body;
-    const profilePhotoPath = req.file ? req.file.path : null;
+    let profilePhotoPath = req.file ? req.file.path : null;
 
-    // Update the user's profile data in the database
+    // Retrieve the existing user from the database
     try {
       const user = await User.findOne({ email, password }).exec();
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Only update the profile photo if a new photo is uploaded
+      if (profilePhotoPath === null) {
+        profilePhotoPath = user.profilePhoto;
+      }
+
+      // Update the user's profile data
       user.fullName = fullName;
       user.email = email;
       user.country = country;
       user.skills = skills;
       user.description = description;
-      user.profilePhoto = profilePhotoPath; // Assuming you have a field for profile photo path in your User model
+      user.profilePhoto = profilePhotoPath;
 
       await user.save();
       console.log("User profile updated successfully");
@@ -140,13 +146,17 @@ app.post(
       companyDescription,
       password,
     } = req.body;
-    const profilePhotoPath = req.file ? req.file.path : null;
+    let profilePhotoPath = req.file ? req.file.path : null;
 
     // Update the user's profile data in the database
     try {
       const user = await User.findOne({ email, password }).exec();
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+      // Only update the profile photo if a new photo is uploaded
+      if (profilePhotoPath === null) {
+        profilePhotoPath = user.profilePhoto;
       }
 
       user.fullName = fullName;
@@ -862,7 +872,7 @@ app.get("/api/proposals/:jobId", async (req, res) => {
       })
       .populate({
         path: "freelancerId",
-        select: "fullName email country",
+        select: "fullName email country skills",
       });
 
     res.json(proposals);
@@ -1061,12 +1071,59 @@ app.put("/api/proposals/:id/withdraw", async (req, res) => {
 });
 
 // api endpoint to fetch all freelancers details
+// app.get("/api/freelancers", async (req, res) => {
+//   try {
+//     // Select the fields you want to include
+//     const freelancers = await User.find({ userType: "freelancer" }).select(
+//       "-password"
+//     );
+
+//     res.json({ freelancers });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// });
+
 app.get("/api/freelancers", async (req, res) => {
   try {
-    // Select the fields you want to include
-    const freelancers = await User.find({ userType: "freelancer" }).select(
-      "-password"
-    );
+    const freelancers = await User.aggregate([
+      // Match documents with userType "freelancer"
+      { $match: { userType: "freelancer" } },
+      // Lookup proposals collection to count completed proposals for each freelancer
+      {
+        $lookup: {
+          from: "proposals",
+          let: { freelancerId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$freelancerId", "$$freelancerId"] },
+                    { $eq: ["$status", "job_completed"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "completedProposals",
+        },
+      },
+      // Project to include necessary fields and count of completed proposals
+      {
+        $project: {
+          _id: 1,
+          fullName: 1,
+          email: 1,
+          country: 1,
+          description: 1,
+          skills: 1,
+          profilePhoto: 1,
+          numberOfCompletedProposals: { $size: "$completedProposals" },
+        },
+      },
+    ]);
 
     res.json({ freelancers });
   } catch (err) {
