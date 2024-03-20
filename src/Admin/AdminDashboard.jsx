@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import ManageUsers from './ManageUsers';
 import ManageJobs from './ManageJobs';
 import ManageProposals from './ManageProposals';
+import ManageCategories from './ManageCategories';
 
 function AdminDashboard() {
 
@@ -182,6 +183,9 @@ function AdminDashboard() {
                 </NavItem>
                 <NavItem>
                   <Button onClick={() => setStep(4)} className="nav-link"> Manage Proposals</Button>
+                </NavItem>
+                <NavItem>
+                  <Button onClick={() => setStep(5)} className="nav-link"> Manage Categories</Button>
                 </NavItem>
                 <NavItem>
                   <Button onClick={handleLogout}>Logout {adminData.username}</Button>
@@ -427,6 +431,10 @@ function AdminDashboard() {
         <ManageProposals
           proposalData={proposalData}
           fetchJobData={fetchJobData}
+          Back={() => setStep(1)}
+        />
+      ) : step === 5 ? (
+        <ManageCategories
           Back={() => setStep(1)}
         />
       ) : (

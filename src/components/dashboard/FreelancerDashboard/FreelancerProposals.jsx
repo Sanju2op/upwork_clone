@@ -86,6 +86,8 @@ const FreelancerProposals = ({ userData, Back }) => {
                                 <li key={proposal._id} className="list-group-item d-flex justify-content-between align-items-start border border-5 border-dark rounded-4">
                                     {/* Proposal details */}
                                     <div>
+                                        <span className="badge bg-secondary m-2">{proposal.jobId.category}</span>
+                                        <span className="badge bg-secondary">{proposal.jobId.subcategory}</span>
                                         <p><strong>Client:</strong> {proposal.jobId ? proposal.jobId.userId.fullName : "Job deleted by client"}</p>
                                         <p><strong>Job Title:</strong> {proposal.jobId ? proposal.jobId.title : "Job deleted by client"}</p>
                                         <p><strong>Date Submitted:</strong> {new Date(proposal.createdAt).toLocaleDateString()} At: {new Date(proposal.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>

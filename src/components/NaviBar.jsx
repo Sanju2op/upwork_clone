@@ -103,9 +103,11 @@ function NaviBar() {
             <li className="nav-item">
               <a className="nav-link" href="/talent-marketplace">Talent Marketplace</a>
             </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/freelance-jobs">Find work</a>
-            </li>
+            {user.userType === "freelancer" ? (
+              <li className="nav-item">
+                <a className="nav-link" href="/freelance-jobs">Find work</a>
+              </li>
+            ) : null}
             <li className="nav-item">
               <a className="nav-link" href='/dashboard'>Dasboard</a>
             </li>

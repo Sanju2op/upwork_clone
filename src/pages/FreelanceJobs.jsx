@@ -11,6 +11,9 @@ const FreelanceJobs = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:5000/api/user', {
@@ -34,21 +37,6 @@ const FreelanceJobs = () => {
       });
   }, []);
 
-  // const fetchJobs = async () => {
-  //   try {
-  //     const response = await fetch('http://localhost:5000/api/jobs/all');
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch jobs');
-  //     }
-  //     const data = await response.json();
-  //     // Filter out closed jobs
-  //     const filteredJobs = data.filter(job => job.status !== 'closed');
-  //     setJobs(filteredJobs);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -66,6 +54,9 @@ const FreelanceJobs = () => {
         );
 
         setJobs(filteredJobs.reverse());
+        const allCategories = filteredJobs.map(job => job.category);
+        const uniqueCategories = [...new Set(allCategories)];
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error(error);
       }
@@ -74,11 +65,22 @@ const FreelanceJobs = () => {
     fetchJobs();
   }, [searchTerm]);
 
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    setSelectedSubcategory('');
+  };
+
+  const handleSubcategoryChange = (subcategory) => {
+    setSelectedSubcategory(subcategory);
+  };
+
+  const filteredJobs = jobs.filter(job =>
+    (selectedCategory === '' || job.category === selectedCategory) &&
+    (selectedSubcategory === '' || job.subcategory === selectedSubcategory)
+  );
 
   const handleJobClick = (job) => {
-    // console.log(user.fullName, "objectId:", user.fullName);
     setSelectedJob(job);
-    // console.log(selectedJob.title, "objectId:", selectedJob._id);
   };
 
   const handleProposalForm = () => {
@@ -112,13 +114,6 @@ const FreelanceJobs = () => {
     }
   };
 
-  // const filteredJobs = jobs.filter(job =>
-  //   job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //   job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //   job.skillsRequired.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-  // );
-
-
   return (
     <div className="container-fluid p-5 bg-dark text-light rounded-4">
       {step === 1 ? (
@@ -130,9 +125,10 @@ const FreelanceJobs = () => {
                 <br /><small className="card-text text-light"><i className="bi bi-clock-history text-secondary p-1"></i>Posted {formatDistanceToNow(new Date(selectedJob.lastUpdated), { addSuffix: true })}</small>&nbsp;&nbsp;&nbsp;
                 <span className="card-text"><i className="bi bi-geo text-primary p-1"></i><CountryName countryCode={selectedJob.userId.country} /></span>
 
+                <span className="badge bg-secondary m-2">{selectedJob.category}</span>
+                <span className="badge bg-secondary">{selectedJob.subcategory}</span>
                 <h3>{selectedJob.title}</h3>
                 <hr />
-                {/* <div className="row"> */}
                 <div style={{ width: "100%" }} className="col-md-6">
                   <h5>Description:</h5>
                   <pre style={{ width: "100%", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}>
@@ -147,8 +143,6 @@ const FreelanceJobs = () => {
                   {/* Add other details you want to display */}
                   <button type="button" className="btn btn-primary" onClick={handleProposalForm}>Apply Now</button>
                 </div>
-
-                {/* </div> */}
               </div>
             </div>
           )}
@@ -169,27 +163,52 @@ const FreelanceJobs = () => {
                   </span>
                 </div>
               </div>
+              <div className="mt-3">
+                <h5>Filter by Category:</h5>
+                <select className="form-select" value={selectedCategory} onChange={(e) => handleCategoryChange(e.target.value)}>
+                  <option value="">All Categories</option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              {selectedCategory && (
+                <div className="mt-3">
+                  <h5>Filter by Subcategory:</h5>
+                  <select className="form-select" value={selectedSubcategory} onChange={(e) => handleSubcategoryChange(e.target.value)}>
+                    <option value="">All Subcategories</option>
+                    {/* Add subcategory options based on the selected category */}
+                    {jobs.filter(job => job.category === selectedCategory).map((job, index) => (
+                      <option key={index} value={job.subcategory}>{job.subcategory}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-            {jobs.map((job, index) => (
+            {filteredJobs.map((job, index) => (
               <div key={job.id || index} className="card mb-3">
                 <div onClick={() => handleJobClick(job)} className="card-body">
-                  <i className="bi bi-clock-history text-primary p-1"></i><small className="card-text text-muted">Posted {formatDistanceToNow(new Date(job.lastUpdated), { addSuffix: true })}</small>
-                  <h4 className="card-title">
-                    <span style={{ textDecoration: "none", borderBottom: "1px solid transparent" }}
-                      onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
-                      onMouseLeave={(e) => e.target.style.textDecoration = "none"}>
-                      {job.title}
-                    </span>
-                  </h4>
-
+                  <span className="badge bg-secondary m-2">{job.category}</span>
+                  <span className="badge bg-secondary">{job.subcategory}</span>
+                  <div className="d-flex justify-content-between">
+                    <h4 className="card-title mb-0">
+                      <span style={{ textDecoration: "none", borderBottom: "1px solid transparent" }}
+                        onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                        onMouseLeave={(e) => e.target.style.textDecoration = "none"}>
+                        {job.title}
+                      </span>
+                    </h4>
+                  </div>
                   <p className="card-text">Est. Budget: ${job.budget}</p>
                   <p className="card-text">{job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}</p>
-                  {/* <p className="card-text">{job.description.length > 50 ? `${job.description.substring(0, job.description.length / 2)}...` : job.description}</p> */}
                   <p className="card-text">Est. Time: {job.duration}</p>
-                  <p className="card-text">Skills: {job.skillsRequired}</p>
+                  <p className="card-text">Skills: {job.skillsRequired.map((skill, index) => (
+                    <span key={index}>{skill}{index !== job.skillsRequired.length - 1 ? ', ' : ''}</span>
+                  ))}</p>
                   <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={job.userId.country} /> | Proposals : {job.numberOfProposals}</p>
                 </div>
               </div>
+
             ))}
           </div>
         </div>
@@ -205,5 +224,7 @@ const FreelanceJobs = () => {
       )}
     </div>
   );
+
 };
+
 export default FreelanceJobs;

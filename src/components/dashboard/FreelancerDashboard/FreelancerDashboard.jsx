@@ -368,6 +368,7 @@ const FreelancerDashboard = ({ userData, fetchUserData }) => {
                   </div>
                   <hr />
                   <p className="text-success">UserType: <b className="text-primary">{userData.userType}</b></p>
+                  <p className="text-success">Wallet: <b className="text-primary">${userData.earned}</b><button className="btn btn-success mx-3">Withdraw</button></p>
                   <span className="text-success">Email: </span>
                   <p className="h6"><b>{userData.email}</b></p>
                   <hr />

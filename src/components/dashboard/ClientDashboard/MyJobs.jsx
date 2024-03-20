@@ -144,11 +144,14 @@ const MyJobs = ({ userData, comeBack }) => {
                             {jobs.map(job => (
                                 <li key={job._id} className="list-group-item d-flex justify-content-between align-items-start m-2 p-3 rounded-4">
                                     <div>
+                                        <span className="badge bg-secondary m-2">{job.category}</span>
+                                        <span className="badge bg-secondary">{job.subcategory}</span>
                                         <h4 className="mb-1">{job.title}</h4>
                                         {/* <p className="mb-1">{job.description}</p> */}
                                         <p className="card-text">{job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}</p>
 
-                                        <p className="mb-0">Skills Required: <strong>{job.skillsRequired || 'N/A'}</strong></p>
+                                        <p className="mb-0">Skills Required: <strong>{job.skillsRequired.join(", ") || 'N/A'}</strong></p>
+                                        {/* <p><strong>Skills Required:</strong> {job.skillsRequired.join(", ")}</p> */}
                                         <p className="mb-0">Budget: <strong>${job.budget || 'N/A'}</strong></p>
                                         <p className="mb-0">Duration: <strong>{job.duration || 'N/A'}</strong></p>
                                         <p className="mb-0">Status: <strong>{job.status || 'N/A'}</strong></p>

@@ -5,7 +5,7 @@ const AcceptedProposals = ({ userData, Back }) => {
     const [jobs, setJobs] = useState([]);
     const [proposals, setProposals] = useState([]);
     const [confirmingJob, setConfirmingJob] = useState(false);
-    const [filter, setFilter] = useState(null); 
+    const [filter, setFilter] = useState(null);
 
     // Fetch jobs for the current user
     const fetchJobs = useCallback(async () => {
@@ -48,27 +48,27 @@ const AcceptedProposals = ({ userData, Back }) => {
             console.error(error);
         }
     }, [jobs]); // Include jobs in the dependency array
-    
+
     useEffect(() => {
         if (jobs.length > 0) {
             fetchProposals();
         }
     }, [jobs, fetchProposals]);
-    
+
     const ConfirmJobCompletion = async (proposalData) => {
         console.log("Job Id:", proposalData.jobId._id);
         setConfirmingJob(true);
-        
+
         try {
             const response = await fetch(`http://localhost:5000/api/jobs/${proposalData._id}/${proposalData.freelancerId.email}/confirm-completion-client`, {
                 method: 'PUT',
                 credentials: 'include',
             });
-        
+
             if (!response.ok) {
                 throw new Error('Failed to confirm job completion');
             }
-        
+
             // Refetch proposals to update the job status
             await fetchProposals();
             alert('Job completion confirmed');
@@ -80,23 +80,23 @@ const AcceptedProposals = ({ userData, Back }) => {
             setConfirmingJob(false);
         }
     };
-    
+
     const ReviseJobCompletion = async (proposalData) => {
         console.log("Job Id:", proposalData.jobId._id);
-        const jobId =  proposalData.jobId._id;
-        if(!jobId) {return};
+        const jobId = proposalData.jobId._id;
+        if (!jobId) { return };
         setConfirmingJob(true);
-        
+
         try {
             const response = await fetch(`http://localhost:5000/api/jobs/${jobId}/${proposalData.freelancerId.email}/confirm-completion-revised`, {
                 method: 'PUT',
                 credentials: 'include',
             });
-        
+
             if (!response.ok) {
                 throw new Error('Failed to confirm job Revision');
             }
-        
+
             // Refetch proposals to update the job status
             await fetchProposals();
             alert('Job Revision confirmed');
@@ -139,10 +139,10 @@ const AcceptedProposals = ({ userData, Back }) => {
                         </div>
                         <hr className="mt-0" />
                         <div className="row">
-                            <div className="col-4">
+                            <div className="col-3">
                                 <p><strong><i className="bi bi-cash-coin text-success p-1"></i> Rate:</strong> ${proposal.rate}</p>
                             </div>
-                            <div className="col-4">
+                            <div className="col-5">
                                 <p><strong>Freelancer Name:</strong> {proposal.freelancerId.fullName}</p>
                             </div>
                             <div className="col-4">
@@ -150,25 +150,25 @@ const AcceptedProposals = ({ userData, Back }) => {
                             </div>
                         </div>
                         <div className="row">
-                            <div className="col-4">
+                            <div className="col-3">
                                 <p><strong>Job Duration:</strong> {proposal.jobId.duration}</p>
                             </div>
-                            <div className="col-4">
+                            <div className="col-5">
                                 <p><strong>Freelancer Email:</strong> {proposal.freelancerId.email}</p>
                             </div>
                             <div className="col-4">
-                                <p><strong>Job Posted On:</strong> {new Date(proposal.jobId.createdAt).toLocaleDateString()}</p>
+                                <p><strong> Job Posted On Date <i className="bi bi-calendar2-event p-1 text-success"></i>:</strong> {new Date(proposal.jobId.createdAt).toLocaleDateString()}</p>
                             </div>
                         </div>
                         <div className="row">
-                            <div className="col-4">
+                            <div className="col-3">
                                 <p><strong>Proposal Status:</strong> {proposal.status}</p>
                             </div>
-                            <div className="col-4">
+                            <div className="col-5">
                                 <p><strong>Freelancer - <i className="bi bi-geo-alt text-success"></i></strong> <CountryName countryCode={proposal.freelancerId.country} /></p>
                             </div>
                             <div className="col-4">
-                                <p><strong><i className="bi bi-calendar2-event p-1 text-success"></i>Proposal Submission Date:</strong> {new Date(proposal.createdAt).toLocaleDateString()}</p>
+                                <p><strong>Proposal Submission <i className="bi bi-calendar2-event p-1 text-success"></i>:</strong> {new Date(proposal.createdAt).toLocaleDateString()}</p>
                             </div>
                         </div>
                         <hr className="mt-0" />
@@ -176,7 +176,7 @@ const AcceptedProposals = ({ userData, Back }) => {
                             {proposal.jobId.status === "pending_completion_confirmation" ? (
                                 <div className="col">
                                     <button className="btn btn-primary mx-2" type="button" onClick={() => ConfirmJobCompletion(proposal)} disabled={confirmingJob}>{confirmingJob ? "confirming..." : "Confirm Completion"}</button>
-                                    <button className="btn btn-danger mx-2" type="button" onClick={() => ReviseJobCompletion(proposal)}disabled={confirmingJob}>{confirmingJob ? "revising..." : "Revise Completion"}</button>
+                                    <button className="btn btn-danger mx-2" type="button" onClick={() => ReviseJobCompletion(proposal)} disabled={confirmingJob}>{confirmingJob ? "revising..." : "Revise Completion"}</button>
                                 </div>
                             ) : null}
                         </div>

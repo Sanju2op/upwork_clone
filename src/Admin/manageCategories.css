@@ -1,0 +1,13 @@
+.subcategory-column {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ccc; /* Add a border to separate subcategories from skills */
+}
+
+.subcategory-column ul {
+  margin-bottom: 0; /* Remove default margin to prevent extra space at the bottom of the column */
+}
+
+.subcategory-column ul:last-child {
+  margin-bottom: 0; /* Remove margin from the last ul element to prevent extra space */
+}

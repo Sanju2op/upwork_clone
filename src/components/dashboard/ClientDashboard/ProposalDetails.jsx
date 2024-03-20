@@ -154,7 +154,8 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
                         Proposals for Job Title:
                     </h1>
                     <h4>{jobData.title}</h4>
-                    <p className="text-muted">Skills Required: {jobData.skillsRequired}</p>
+                    <p className="text-muted">Skills Required: {jobData.skillsRequired.join(", ")}</p>
+
                     <h5 className="alert alert-danger">Total Proposals: {proposals.length}</h5>
                     <div className="btn-group mb-3">
                         <button
@@ -227,7 +228,10 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
                                             </>
                                         )}
                                         <h4>Proposal:</h4>
-                                        <p>Freelancer: {selectedProposal.freelancerId.fullName}</p>
+                                        <p>Freelancer: {selectedProposal.freelancerId.fullName}
+                                            &nbsp;&nbsp;| <span className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={selectedProposal.freelancerId.country} /></span>
+                                        </p>
+
                                         <p>Skills: {selectedProposal.freelancerId.skills}</p>
                                         <hr />
                                         <p>CoverLetter: </p>
@@ -239,7 +243,7 @@ const ProposalDetails = ({ userData, jobData, Back }) => {
                                         <p>Details</p>
                                         <p>Biding: <b>$</b>{selectedProposal.rate}</p>
                                         <p>Est. Time: {selectedProposal.duration}</p>
-                                        <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={selectedProposal.freelancerId.country} /></p>
+                                        {/* <p className="card-text"><i className="bi bi-geo-alt text-success p-1"></i><CountryName countryCode={selectedProposal.freelancerId.country} /></p> */}
                                         <p>Submitted on: {new Date(selectedProposal.createdAt).toLocaleString()}</p>
                                         {/* Add other details you want to display */}
                                     </div>

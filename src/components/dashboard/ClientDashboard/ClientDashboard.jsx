@@ -268,7 +268,7 @@ const ClientDashboard = ({ userData, fetchUserData }) => {
   const handleJobPost = async (newJobData) => {
     console.log(newJobData);
     try {
-      const { jobTitle, description, skillsRequired, budget, duration } = newJobData;
+      const { jobTitle, description, skillsRequired, budget, duration, category, subcategory } = newJobData;
 
       const response = await fetch('http://localhost:5000/api/jobs', {
         method: 'POST',
@@ -281,7 +281,9 @@ const ClientDashboard = ({ userData, fetchUserData }) => {
           description: description,
           skillsRequired: skillsRequired,
           budget: budget,
-          duration: duration
+          duration: duration,
+          category: category,
+          subcategory: subcategory
         }),
         credentials: 'include'
       });
@@ -297,6 +299,7 @@ const ClientDashboard = ({ userData, fetchUserData }) => {
     }
   };
 
+
   // Profile Edits
   const handleEdit = () => {
     setEditMode(true);
@@ -305,24 +308,11 @@ const ClientDashboard = ({ userData, fetchUserData }) => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "profilePhoto") {
-      setEditedData((prevData) => ({
-        ...prevData,
-        profilePhoto: files[0], // Assuming only one file is selected
-      }));
-    } else if (name === "companyName") {
-      setEditedData((prevData) => ({
-        ...prevData,
-        companyName: value,
-      }));
-    } else if (name === "companyDescription") {
-      setEditedData((prevData) => ({
-        ...prevData,
-        companyDescription: value,
-      }));
-    }
+    setEditedData((prevData) => ({
+      ...prevData,
+      [name]: name === "profilePhoto" ? files[0] : value,
+    }));
   };
-
 
   const handleSave = async () => {
     const formData = new FormData();
@@ -404,7 +394,7 @@ const ClientDashboard = ({ userData, fetchUserData }) => {
                     </div>
                   </div>
                   <hr />
-                  <p className="text-success">UserType: <b className="text-primary">{userData.userType}</b></p>
+                  <p className="text-success">UserType: <b className="text-primary">{userData.userType} &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-danger">Total Spent: ${userData.spent}</span></b></p>
                   <span className="text-success">Email: </span>
                   <p className="h6"><b>{userData.email}</b></p>
                   <hr />

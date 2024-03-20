@@ -88,6 +88,9 @@ const userSchema = new mongoose.Schema({
   companyDescription: String,
   // Profile photo path
   profilePhoto: String,
+  // Additional fields
+  earned: { type: Number, default: 0 }, // For freelancers
+  spent: { type: Number, default: 0 }, // For clients
 });
 
 const User = mongoose.model("User", userSchema); // mongodb automatically determines collection name
@@ -213,6 +216,188 @@ app.post("/api/signup", async (req, res) => {
       .json({ error: "Failed to sign up user. Please try again." });
   }
 });
+
+// Categories
+
+// Skill schema
+const skillSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+});
+
+// Subcategory schema
+const subcategorySchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  skills: [skillSchema],
+});
+
+// Category schema
+const categorySchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  subcategories: [subcategorySchema],
+});
+
+// Model for the entire category collection
+const Category = mongoose.model("Category", categorySchema);
+
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch (err) {
+    console.error("Error fetching categories:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// get skills
+app.get("/api/skills", async (req, res) => {
+  const { subcategory } = req.query;
+  if (!subcategory) {
+    return res.status(400).json({ error: "Subcategory is required" });
+  }
+
+  try {
+    const category = await Category.findOne({
+      "subcategories.name": subcategory,
+    });
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    const subcategoryObj = category.subcategories.find(
+      (sub) => sub.name === subcategory
+    );
+    if (!subcategoryObj) {
+      return res.status(404).json({ error: "Subcategory not found" });
+    }
+
+    const skills = subcategoryObj.skills.map((skill) => skill.name);
+    res.json(skills);
+  } catch (error) {
+    console.error("Error fetching skills:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// const categoriesData = [
+//   {
+//     name: "Development & IT",
+//     subcategories: [
+//       {
+//         name: "Web Development",
+//         skills: [
+//           { name: "HTML/CSS" },
+//           { name: "JavaScript" },
+//           { name: "React" },
+//         ],
+//       },
+//       {
+//         name: "Mobile Development",
+//         skills: [
+//           { name: "Android" },
+//           { name: "iOS" },
+//           { name: "React Native" },
+//         ],
+//       },
+//       {
+//         name: "Database Administration",
+//         skills: [{ name: "SQL" }, { name: "MongoDB" }, { name: "PostgreSQL" }],
+//       },
+//     ],
+//   },
+//   {
+//     name: "AI Services",
+//     subcategories: [
+//       {
+//         name: "Machine Learning",
+//         skills: [
+//           { name: "Python" },
+//           { name: "TensorFlow" },
+//           { name: "Scikit-learn" },
+//         ],
+//       },
+//       {
+//         name: "Natural Language Processing",
+//         skills: [{ name: "NLTK" }, { name: "SpaCy" }, { name: "Gensim" }],
+//       },
+//       {
+//         name: "Computer Vision",
+//         skills: [
+//           { name: "OpenCV" },
+//           { name: "TensorFlow" },
+//           { name: "PyTorch" },
+//         ],
+//       },
+//     ],
+//   },
+//   {
+//     name: "Design & Creative",
+//     subcategories: [
+//       {
+//         name: "Graphic Design",
+//         skills: [
+//           { name: "Adobe Photoshop" },
+//           { name: "Adobe Illustrator" },
+//           { name: "Logo Design" },
+//         ],
+//       },
+//       {
+//         name: "UI/UX Design",
+//         skills: [{ name: "Adobe XD" }, { name: "Figma" }, { name: "Sketch" }],
+//       },
+//     ],
+//   },
+//   {
+//     name: "Sales & Marketing",
+//     subcategories: [
+//       {
+//         name: "Digital Marketing",
+//         skills: [
+//           { name: "SEO" },
+//           { name: "Social Media Marketing" },
+//           { name: "Email Marketing" },
+//         ],
+//       },
+//       {
+//         name: "Sales Management",
+//         skills: [
+//           { name: "Sales Strategy" },
+//           { name: "Customer Relationship Management (CRM)" },
+//           { name: "Negotiation" },
+//         ],
+//       },
+//     ],
+//   },
+//   {
+//     name: "Admin & Customer Support",
+//     subcategories: [
+//       {
+//         name: "Virtual Assistance",
+//         skills: [
+//           { name: "Administrative Support" },
+//           { name: "Email Handling" },
+//           { name: "Calendar Management" },
+//         ],
+//       },
+//       {
+//         name: "Customer Support",
+//         skills: [
+//           { name: "Customer Service" },
+//           { name: "Helpdesk Support" },
+//           { name: "Live Chat Support" },
+//         ],
+//       },
+//     ],
+//   },
+// ];
+
+// Category.insertMany(categoriesData)
+//   .then((categories) => {
+//     console.log("Categories inserted:", categories);
+//   })
+//   .catch((err) => {
+//     console.error("Error inserting categories:", err);
+//   });
 
 //login processes
 
@@ -425,7 +610,6 @@ app.post("/api/verifyEmail", (req, res) => {
   res.status(200).json({ message: "Email verified successfully." });
 });
 
-//Posting Job
 const jobSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -437,6 +621,14 @@ const jobSchema = new mongoose.Schema({
     required: true,
   },
   description: {
+    type: String,
+    required: true,
+  },
+  category: {
+    type: String,
+    required: true,
+  },
+  subcategory: {
     type: String,
     required: true,
   },
@@ -499,6 +691,8 @@ app.post("/api/jobs", async (req, res) => {
       skillsRequired,
       budget,
       duration,
+      category,
+      subcategory,
       createdAt,
     } = req.body;
     const job = new Job({
@@ -508,6 +702,8 @@ app.post("/api/jobs", async (req, res) => {
       skillsRequired,
       budget,
       duration,
+      category,
+      subcategory,
       createdAt,
       numberOfProposals: 0,
     });
@@ -644,6 +840,8 @@ app.put(
 // Endpoint for the client to mark a job as complete
 app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
   const proposalId = req.params.id;
+  const clientId = req.session.userId;
+  const freelancerEmail = req.params.email;
 
   try {
     // Update the proposal status to "job_completed"
@@ -673,6 +871,7 @@ app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
     if (!updatedJob) {
       return res.status(404).send("Job not found");
     }
+
     const transactionAmount = updatedProposal.rate; // Example transaction amount
     const flatFee = 4; // Flat fee for transactions less than $25
     const percentageFee = 0.09; // 9% of the transaction amount
@@ -685,26 +884,35 @@ app.put("/api/jobs/:id/:email/confirm-completion-client", async (req, res) => {
       totalFee = transactionAmount * percentageFee;
     }
 
-    //Revenue
+    // Update the client's spent
+    const client = await User.findById(clientId);
+    if (!client) {
+      return res.status(404).send("Client not found");
+    }
+    client.spent = (client.spent || 0) + transactionAmount;
+    await client.save();
+
+    // Update the freelancer's earned
+    const freelancer = await User.findOne({ email: freelancerEmail });
+    if (!freelancer) {
+      return res.status(404).send("Freelancer not found");
+    }
+    freelancer.earned = (freelancer.earned || 0) + transactionAmount - totalFee;
+    await freelancer.save();
+
+    // Revenue
     const revenue = new Revenue({
       date: new Date(), // Assuming today's date for simplicity, you can use any date you want
       amount: totalFee,
     });
 
     // Save the revenue document to the database
-    revenue
-      .save()
-      .then(() => {
-        console.log("Service fee revenue saved successfully");
-      })
-      .catch((err) => {
-        console.error("Error saving service fee revenue:", err);
-      });
+    await revenue.save();
 
+    // Calculate amount after fees
     const amountAfterFees = updatedProposal.rate - totalFee;
-    // const serviceFee = updatedProposal.rate * 0.03;
-    // Send an email to the client to check their work
-    const freelancerEmail = req.params.email;
+
+    // Send an email to the freelancer
     const mailOptions = {
       from: "sanjaylagaria79901@gmail.com",
       to: freelancerEmail,
