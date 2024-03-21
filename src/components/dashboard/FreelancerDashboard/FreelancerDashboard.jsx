@@ -8,6 +8,7 @@ const FreelancerDashboard = ({ userData, fetchUserData }) => {
   const [step, setStep] = useState(1);
   const [editMode, setEditMode] = useState(false);
   const [editedData, setEditedData] = useState(userData);
+  const [withdrawing, setWithdrawing] = useState(false);
   const countries = [
     { "code": "US", "name": "United States" },
     { "code": "CA", "name": "Canada" },
@@ -312,6 +313,54 @@ const FreelancerDashboard = ({ userData, fetchUserData }) => {
     }
   };
 
+  const handleWithdraw = () => {
+    let amount = parseFloat(window.prompt("Enter Amount:"));
+
+    // Validate the amount
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    // Check if the user has sufficient balance
+    if (amount > userData.earned) {
+      alert("Insufficient balance. Please enter a valid amount.");
+      return;
+    }
+    setWithdrawing(true);
+    let email = userData.email;
+    console.log(email, amount);
+    // Make a request to the API endpoint to withdraw the amount
+    fetch('http://localhost:5000/api/withdraw', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ amount, email }),
+      credentials: 'include', // Include credentials if necessary
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to withdraw amount');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Update the userData state with the new balance
+        // For example, if userData is in state:
+        // setUserData({ ...userData, earned: userData.earned - amount });
+
+        alert("Withdrawal successful. Updated balance: " + (userData.earned - amount));
+        fetchUserData();
+        setWithdrawing(false);
+      })
+      .catch(error => {
+        console.error('Error withdrawing amount:', error);
+        alert('Failed to withdraw amount');
+      });
+  };
+
+
 
   return (
     <div className="container-fluid">
@@ -368,7 +417,7 @@ const FreelancerDashboard = ({ userData, fetchUserData }) => {
                   </div>
                   <hr />
                   <p className="text-success">UserType: <b className="text-primary">{userData.userType}</b></p>
-                  <p className="text-success">Wallet: <b className="text-primary">${userData.earned}</b><button className="btn btn-success mx-3">Withdraw</button></p>
+                  <p className="text-success">Wallet: <b className="text-primary">${userData.earned}</b><button onClick={() => handleWithdraw()} className="btn btn-success mx-3" disabled={withdrawing}>{withdrawing ? "Withdrawing..." : "Withdraw"}</button></p>
                   <span className="text-success">Email: </span>
                   <p className="h6"><b>{userData.email}</b></p>
                   <hr />

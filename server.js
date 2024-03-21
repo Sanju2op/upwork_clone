@@ -217,6 +217,40 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
+app.post("/api/withdraw", async (req, res) => {
+  const { amount, email } = req.body;
+  // const { userEmail } = req.user; // Assuming you have a user object with the freelancer's email
+
+  try {
+    // Find the user by email and deduct the earned field with the amount
+    const user = await User.findOneAndUpdate(
+      { email: email },
+      { $inc: { earned: -amount } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Send an email to the freelancer
+    const mailOptions = {
+      from: "sanjaylagaria79901@gmail.com",
+      to: email,
+      subject: "Withdrawal Confirmation",
+      text: `Dear Freelancer, you have successfully withdrawn $${amount}.`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    // Send a response indicating success
+    res.status(200).json({ message: "Withdrawal successful" });
+  } catch (error) {
+    console.error("Error processing withdrawal:", error);
+    res.status(500).json({ message: "Failed to process withdrawal" });
+  }
+});
+
 // Categories
 
 // Skill schema
@@ -276,6 +310,193 @@ app.get("/api/skills", async (req, res) => {
   } catch (error) {
     console.error("Error fetching skills:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// API endpoint for adding a skill to a subcategory
+app.post(
+  "/api/categories/:categoryId/subcategories/:subcategoryId/skills",
+  async (req, res) => {
+    const { categoryId, subcategoryId } = req.params;
+    const { name } = req.body;
+
+    try {
+      // Check if the category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      // Find the subcategory by its ID in the category's subcategories array
+      const subcategory = category.subcategories.id(subcategoryId);
+      if (!subcategory) {
+        return res
+          .status(404)
+          .json({ message: "Subcategory not found in the category" });
+      }
+
+      // Create a new skill
+      const newSkill = { name };
+      subcategory.skills.push(newSkill);
+      await category.save();
+
+      res.status(200).json({ message: "Skill added successfully", category });
+    } catch (error) {
+      console.error("Error adding skill:", error);
+      res.status(500).json({ message: "Failed to add skill" });
+    }
+  }
+);
+
+// Delete Skill
+app.delete(
+  "/api/categories/:categoryId/subcategories/:subcategoryId/skills/:skillId",
+  async (req, res) => {
+    const { categoryId, subcategoryId, skillId } = req.params;
+
+    try {
+      // Check if the category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      // Find the subcategory by its ID in the category's subcategories array
+      const subcategory = category.subcategories.id(subcategoryId);
+      if (!subcategory) {
+        return res
+          .status(404)
+          .json({ message: "Subcategory not found in the category" });
+      }
+
+      // Find the skill index
+      const skillIndex = subcategory.skills.findIndex(
+        (skill) => skill._id.toString() === skillId
+      );
+      if (skillIndex === -1) {
+        return res
+          .status(404)
+          .json({ message: "Skill not found in the subcategory" });
+      }
+
+      // Remove the skill from the subcategory
+      subcategory.skills.splice(skillIndex, 1);
+      await category.save();
+
+      // Return the updated category with populated subcategories and skills
+      const updatedCategory = await Category.findById(categoryId).populate({
+        path: "subcategories",
+        populate: { path: "skills" },
+      });
+
+      res.status(200).json({ categories: updatedCategory });
+    } catch (error) {
+      console.error("Error deleting skill:", error);
+      res.status(500).json({ message: "Failed to delete skill" });
+    }
+  }
+);
+
+// POST endpoint to add a subcategory to a category
+app.post("/api/categories/:categoryId/subcategories", async (req, res) => {
+  const { categoryId } = req.params;
+  const { name } = req.body;
+
+  try {
+    // Find the category by ID
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Add the new subcategory to the category's subcategories array
+    category.subcategories.push({ name });
+
+    // Save the updated category
+    await category.save();
+
+    // Return the updated category
+    res.status(201).json({ category });
+  } catch (error) {
+    console.error("Error adding subcategory:", error);
+    res.status(500).json({ message: "Failed to add subcategory" });
+  }
+});
+
+// DELETE endpoint to delete a subcategory from a category
+app.delete(
+  "/api/categories/:categoryId/subcategories/:subcategoryId",
+  async (req, res) => {
+    const { categoryId, subcategoryId } = req.params;
+
+    try {
+      // Find the category by ID
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      // Find the index of the subcategory within the category
+      const subcategoryIndex = category.subcategories.findIndex(
+        (subcat) => subcat._id.toString() === subcategoryId
+      );
+      if (subcategoryIndex === -1) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+
+      // Remove the subcategory from the category's subcategories array
+      category.subcategories.splice(subcategoryIndex, 1);
+
+      // Save the updated category
+      await category.save();
+
+      // Return the updated category
+      res
+        .status(200)
+        .json({ message: "Subcategory deleted successfully", category });
+    } catch (error) {
+      console.error("Error deleting subcategory:", error);
+      res.status(500).json({ message: "Failed to delete subcategory" });
+    }
+  }
+);
+
+// DELETE endpoint to delete a category and its subcategories
+app.delete("/api/categories/:categoryId", async (req, res) => {
+  const { categoryId } = req.params;
+
+  try {
+    // Find the category by ID
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Remove the category
+    await Category.findByIdAndDelete(categoryId);
+
+    // Return success message
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    res.status(500).json({ message: "Failed to delete category" });
+  }
+});
+
+// POST endpoint to add a new category
+app.post("/api/categories", async (req, res) => {
+  const { name } = req.body;
+
+  try {
+    // Create a new category
+    const newCategory = new Category({ name });
+    await newCategory.save();
+
+    // Return the newly created category
+    res.status(201).json({ category: newCategory });
+  } catch (error) {
+    console.error("Error adding category:", error);
+    res.status(500).json({ message: "Failed to add category" });
   }
 });
 
